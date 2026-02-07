@@ -241,13 +241,16 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center">
+
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/btnQuickScan"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@android:drawable/ic_menu_camera"
                         app:backgroundTint="#E0F2F1"
                         app:tint="#00796B"
                         app:elevation="0dp"/>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -263,6 +266,7 @@
                     android:orientation="vertical"
                     android:gravity="center">
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/btnQuickAlerts"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@android:drawable/ic_dialog_alert"
@@ -314,7 +318,9 @@
             android:background="@android:color/transparent"
             app:menu="@menu/bottom_nav_menu"
             app:elevation="0dp"
-            app:itemIconTint="@color/purple_700"/> </com.google.android.material.bottomappbar.BottomAppBar>
+            app:itemIconTint="@color/purple_700"/>
+
+    </com.google.android.material.bottomappbar.BottomAppBar>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
