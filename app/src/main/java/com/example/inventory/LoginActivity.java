@@ -1,6 +1,8 @@
 package com.example.inventory;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -13,7 +15,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
@@ -42,13 +43,8 @@ public class LoginActivity extends AppCompatActivity {
         tvRegister = findViewById(R.id.tvRegister);
         progressBar = findViewById(R.id.progressBar);
 
-        // Login Button Logic
         btnLogin.setOnClickListener(v -> loginUser());
-
-        // Register Link Logic
-        tvRegister.setOnClickListener(v -> {
-            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
-        });
+        tvRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
     }
 
     private void loginUser() {
@@ -64,20 +60,18 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Show loading
         progressBar.setVisibility(View.VISIBLE);
         btnLogin.setEnabled(false);
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Login Success! Now check the ROLE in Firestore
+                        // Success: Fetch the role from Firestore
                         checkUserRole(mAuth.getCurrentUser().getUid());
                     } else {
-                        // Login Failed
                         progressBar.setVisibility(View.GONE);
                         btnLogin.setEnabled(true);
-                        Toast.makeText(LoginActivity.this, "Authentication Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -85,28 +79,33 @@ public class LoginActivity extends AppCompatActivity {
     private void checkUserRole(String uid) {
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    progressBar.setVisibility(View.GONE);
-                    btnLogin.setEnabled(true);
+                    String role = "Staff"; // Default to safest role
 
                     if (documentSnapshot.exists()) {
-                        // Get Role (Default to Admin if missing)
-                        String role = documentSnapshot.getString("role");
-                        if (role == null) role = "Admin";
-
-                        // Go to Main Dashboard with Role
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.putExtra("USER_ROLE", role);
-                        startActivity(intent);
-                        finish(); // Prevent going back to Login
-                    } else {
-                        // User exists in Auth but not in Firestore (Rare edge case)
-                        Toast.makeText(this, "User data not found. Contact Admin.", Toast.LENGTH_SHORT).show();
+                        role = documentSnapshot.getString("role");
+                        if (role == null) role = "Staff";
                     }
+
+                    // --- THE REINFORCEMENT FIX ---
+                    // 1. Save to SharedPreferences (Permanent storage on phone)
+                    SharedPreferences prefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                    prefs.edit().putString("USER_ROLE", role).apply();
+
+                    // 2. Pass to Intent (Immediate delivery)
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    intent.putExtra("USER_ROLE", role);
+
+                    // Clear activity stack so user can't go "back" into login
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                    progressBar.setVisibility(View.GONE);
+                    startActivity(intent);
+                    finish();
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
                     btnLogin.setEnabled(true);
-                    Toast.makeText(this, "Error fetching role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to verify role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }

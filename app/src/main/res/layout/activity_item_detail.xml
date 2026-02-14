@@ -111,11 +111,11 @@
                         android:id="@+id/tvDetailQty"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="32dp"
                         android:text="0"
-                        android:textSize="48sp"
-                        android:textStyle="bold"
                         android:textColor="#333"
-                        android:layout_marginHorizontal="32dp"/>
+                        android:textSize="48sp"
+                        android:textStyle="bold" />
 
                     <Button
                         android:id="@+id/btnStockIn"
@@ -138,11 +138,11 @@
                     android:textColor="#9E9E9E"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="8dp"/>
-
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
+            android:id="@+id/tvAdminActionsHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Admin Actions"
@@ -153,6 +153,7 @@
             android:layout_marginTop="16dp"/>
 
         <LinearLayout
+            android:id="@+id/layoutAdminActions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -174,7 +175,6 @@
                 android:text="Delete Product"
                 android:backgroundTint="#D32F2F"
                 android:textColor="#FFFFFF"/>
-
         </LinearLayout>
 
     </LinearLayout>

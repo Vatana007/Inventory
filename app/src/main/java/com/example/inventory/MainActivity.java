@@ -5,7 +5,8 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,6 +20,7 @@ import com.example.inventory.model.InventoryItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private ListenerRegistration firestoreListener;
 
-    // SECURITY FIX: Default to "Staff" (Safe Mode) instead of Admin
+    // Default to Staff for safety, but will be overwritten in onCreate
     private String userRole = "Staff";
 
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
@@ -55,6 +57,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 1. GET ROLE IMMEDIATELY
+        // This prevents the "Admin" to "Staff" reset when returning to Home
+        if (getIntent().hasExtra("USER_ROLE")) {
+            userRole = getIntent().getStringExtra("USER_ROLE");
+        }
+
+        // 2. INITIALIZE DATA & FIREBASE
         db = FirebaseFirestore.getInstance();
         itemList = new ArrayList<>();
         fullList = new ArrayList<>();
@@ -64,37 +73,15 @@ public class MainActivity extends AppCompatActivity {
         tvAppTitle = findViewById(R.id.tvAppTitle);
         etSearch = findViewById(R.id.etSearch);
 
-        // 1. GET ROLE
-        if (getIntent().hasExtra("USER_ROLE")) {
-            userRole = getIntent().getStringExtra("USER_ROLE");
-        }
+        // 3. APPLY ROLE-BASED UI
         tvAppTitle.setText(userRole + " Dashboard");
+        applyRolePermissions();
 
-        // 2. APPLY RESTRICTIONS
-        if ("Staff".equalsIgnoreCase(userRole)) {
-            // Hide "Add" buttons
-            findViewById(R.id.fabAdd).setVisibility(View.GONE);
-            findViewById(R.id.btnQuickAdd).setVisibility(View.GONE);
+        // 4. SETUP ACTIONS & COMPONENTS
+        setupLogoutActions();
+        setupRecyclerView();
 
-            // Hide "Report" button (Quick Action)
-            findViewById(R.id.btnQuickReport).setVisibility(View.GONE);
-        }
-
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // 3. PASS ROLE TO DETAIL SCREEN (CRITICAL FIX)
-        adapter = new InventoryAdapter(itemList, item -> {
-            Intent intent = new Intent(MainActivity.this, ItemDetailActivity.class);
-            intent.putExtra("itemId", item.getId());
-            intent.putExtra("itemName", item.getName());
-            intent.putExtra("currentQty", item.getQuantity());
-            intent.putExtra("USER_ROLE", userRole); // <--- THIS MUST BE HERE
-            startActivity(intent);
-        });
-
-        recyclerView.setAdapter(adapter);
-
+        // Search Logic
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -105,8 +92,139 @@ public class MainActivity extends AppCompatActivity {
         });
 
         setupQuickActions();
-        setupBottomNavigation(); // <--- Check this method below!
+        setupBottomNavigation();
         listenForRealTimeUpdates();
+    }
+
+    private void applyRolePermissions() {
+        // Find views that only Admins should see
+        View fabAdd = findViewById(R.id.fabAdd);
+        View btnQuickAdd = findViewById(R.id.btnQuickAdd);
+        View btnQuickReport = findViewById(R.id.btnQuickReport);
+        View statsContainer = findViewById(R.id.statsContainer);
+
+        if ("Staff".equalsIgnoreCase(userRole)) {
+            if (fabAdd != null) fabAdd.setVisibility(View.GONE);
+            if (btnQuickAdd != null) btnQuickAdd.setVisibility(View.GONE);
+            if (btnQuickReport != null) btnQuickReport.setVisibility(View.GONE);
+            // Optional: Hide stats container for staff if you want them to see ONLY the list
+            // if (statsContainer != null) statsContainer.setVisibility(View.GONE);
+        } else {
+            // Ensure they are visible for Admins
+            if (fabAdd != null) fabAdd.setVisibility(View.VISIBLE);
+            if (btnQuickAdd != null) btnQuickAdd.setVisibility(View.VISIBLE);
+            if (btnQuickReport != null) btnQuickReport.setVisibility(View.VISIBLE);
+            if (statsContainer != null) statsContainer.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void setupLogoutActions() {
+        View btnLogout = findViewById(R.id.btnLogout);
+        if (btnLogout != null) btnLogout.setOnClickListener(v -> handleLogout());
+
+        ImageView ivProfile = findViewById(R.id.ivProfile);
+        if (ivProfile != null) {
+            ivProfile.setOnClickListener(v -> {
+                PopupMenu popup = new PopupMenu(MainActivity.this, v);
+                popup.getMenu().add("Role: " + userRole).setEnabled(false);
+                popup.getMenu().add("Logout");
+                popup.setOnMenuItemClickListener(item -> {
+                    if (item.getTitle().equals("Logout")) {
+                        handleLogout();
+                        return true;
+                    }
+                    return false;
+                });
+                popup.show();
+            });
+        }
+    }
+
+    private void setupRecyclerView() {
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new InventoryAdapter(itemList, item -> {
+            Intent intent = new Intent(MainActivity.this, ItemDetailActivity.class);
+            intent.putExtra("itemId", item.getId());
+            intent.putExtra("USER_ROLE", userRole); // Pass role to detail
+            startActivity(intent);
+        });
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void setupQuickActions() {
+        // Helper to add role to intents
+        View.OnClickListener adminCheckAdd = v -> {
+            Intent intent = new Intent(MainActivity.this, AddItemActivity.class);
+            intent.putExtra("USER_ROLE", userRole);
+            startActivity(intent);
+        };
+
+        View btnAdd = findViewById(R.id.btnQuickAdd);
+        if (btnAdd != null) btnAdd.setOnClickListener(adminCheckAdd);
+
+        FloatingActionButton fab = findViewById(R.id.fabAdd);
+        if(fab != null) fab.setOnClickListener(adminCheckAdd);
+
+        View btnReport = findViewById(R.id.btnQuickReport);
+        if (btnReport != null) {
+            btnReport.setOnClickListener(v -> {
+                if ("Admin".equalsIgnoreCase(userRole)) {
+                    Intent intent = new Intent(MainActivity.this, ReportActivity.class);
+                    intent.putExtra("USER_ROLE", userRole);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Access Denied: Admin Only", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        View scanBtn = findViewById(R.id.btnQuickScan);
+        if (scanBtn != null) {
+            scanBtn.setOnClickListener(v -> {
+                ScanOptions options = new ScanOptions();
+                options.setCaptureActivity(PortraitCaptureActivity.class);
+                barcodeLauncher.launch(options);
+            });
+        }
+
+        View btnAlerts = findViewById(R.id.btnQuickAlerts);
+        if (btnAlerts != null) {
+            btnAlerts.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+                intent.putExtra("USER_ROLE", userRole);
+                startActivity(intent);
+            });
+        }
+    }
+
+    private void setupBottomNavigation() {
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
+        bottomNav.setSelectedItemId(R.id.nav_home);
+        bottomNav.getMenu().getItem(2).setEnabled(false);
+
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) return true;
+
+            if (id == R.id.nav_inventory) {
+                Intent intent = new Intent(this, InventoryActivity.class);
+                intent.putExtra("USER_ROLE", userRole); // Crucial: Pass role
+                startActivity(intent);
+                return true;
+            }
+            if (id == R.id.nav_report) {
+                if ("Staff".equalsIgnoreCase(userRole)) {
+                    Toast.makeText(this, "🚫 Admin Access Only", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                Intent intent = new Intent(this, ReportActivity.class);
+                intent.putExtra("USER_ROLE", userRole); // Crucial: Pass role
+                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
     }
 
     private void listenForRealTimeUpdates() {
@@ -116,7 +234,6 @@ public class MainActivity extends AppCompatActivity {
             if (snapshots != null) {
                 int totalItems = 0;
                 double totalValue = 0.0;
-                int lowStock = 0;
                 for (DocumentSnapshot doc : snapshots) {
                     InventoryItem item = doc.toObject(InventoryItem.class);
                     if (item != null) {
@@ -124,13 +241,12 @@ public class MainActivity extends AppCompatActivity {
                         fullList.add(item);
                         totalItems += item.getQuantity();
                         totalValue += (item.getQuantity() * item.getPrice());
-                        if(item.getQuantity() < item.getMinStock()) lowStock++;
                     }
                 }
+                // Update stats only if user is Admin (optional logic)
                 tvTotalCount.setText(String.valueOf(totalItems));
                 tvTotalValue.setText("$" + String.format("%.2f", totalValue));
                 filterList(etSearch.getText().toString());
-                if(lowStock > 0) Toast.makeText(this, "⚠️ Low Stock: " + lowStock, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -141,77 +257,18 @@ public class MainActivity extends AppCompatActivity {
         else {
             String q = query.toLowerCase().trim();
             for (InventoryItem i : fullList) {
-                if (i.getName().toLowerCase().contains(q) || (i.getBarcode() != null && i.getBarcode().contains(q))) {
-                    itemList.add(i);
-                }
+                if (i.getName().toLowerCase().contains(q)) itemList.add(i);
             }
         }
         adapter.notifyDataSetChanged();
     }
 
-    private void setupQuickActions() {
-        findViewById(R.id.btnQuickAdd).setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AddItemActivity.class)));
-
-        // SECURITY CHECK ON CLICK
-        findViewById(R.id.btnQuickReport).setOnClickListener(v -> {
-            if ("Admin".equalsIgnoreCase(userRole)) {
-                startActivity(new Intent(MainActivity.this, ReportActivity.class));
-            } else {
-                Toast.makeText(this, "Access Denied: Admin Only", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        View scanBtn = findViewById(R.id.btnQuickScan);
-        if (scanBtn != null) {
-            scanBtn.setOnClickListener(v -> {
-                ScanOptions options = new ScanOptions();
-                options.setPrompt("Scan Barcode");
-                options.setOrientationLocked(true);
-                options.setCaptureActivity(PortraitCaptureActivity.class);
-                barcodeLauncher.launch(options);
-            });
-        }
-
-        // History Button
-        try {
-            LinearLayout grid = findViewById(R.id.quickActionsGrid);
-            if (grid != null && grid.getChildCount() > 3) {
-                grid.getChildAt(3).setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HistoryActivity.class)));
-            }
-        } catch (Exception e) {}
-
-        FloatingActionButton fab = findViewById(R.id.fabAdd);
-        if(fab != null) fab.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AddItemActivity.class)));
-    }
-
-    // --- SECURITY FIX FOR BOTTOM NAVIGATION ---
-    private void setupBottomNavigation() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
-        bottomNav.setBackground(null);
-        bottomNav.getMenu().getItem(2).setEnabled(false);
-
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) return true;
-
-            if (id == R.id.nav_inventory) {
-                startActivity(new Intent(this, InventoryActivity.class));
-                overridePendingTransition(0,0);
-                return true;
-            }
-            if (id == R.id.nav_report) {
-                // BLOCK STAFF HERE
-                if ("Staff".equalsIgnoreCase(userRole)) {
-                    Toast.makeText(this, "🚫 Reports are for Admin only", Toast.LENGTH_SHORT).show();
-                    return false; // Don't switch tabs
-                }
-
-                startActivity(new Intent(this, ReportActivity.class));
-                overridePendingTransition(0,0);
-                return true;
-            }
-            return false;
-        });
+    private void handleLogout() {
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     @Override
