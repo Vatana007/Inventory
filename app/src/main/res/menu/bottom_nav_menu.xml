@@ -4,12 +4,12 @@
     <item
         android:id="@+id/nav_home"
         android:icon="@android:drawable/ic_menu_view"
-        android:title="Home" />
+        android:title="@string/nav_home" />
 
     <item
         android:id="@+id/nav_inventory"
         android:icon="@android:drawable/ic_menu_sort_by_size"
-        android:title="Inventory" />
+        android:title="@string/nav_inventory" />
 
     <item
         android:id="@+id/nav_placeholder"
@@ -19,11 +19,11 @@
     <item
         android:id="@+id/nav_report"
         android:icon="@android:drawable/ic_menu_info_details"
-        android:title="Report" />
+        android:title="@string/nav_report" />
 
     <item
         android:id="@+id/nav_history"
         android:icon="@android:drawable/ic_menu_recent_history"
-        android:title="History" />
+        android:title="@string/nav_history" />
 
 </menu>

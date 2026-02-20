@@ -49,7 +49,7 @@ public class RegisterActivity extends AppCompatActivity {
         String role = spinnerRole.getSelectedItem().toString();
 
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_fill_all), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -60,11 +60,11 @@ public class RegisterActivity extends AppCompatActivity {
                     db.collection("users").document(authResult.getUser().getUid())
                             .set(user)
                             .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(this, "Account Created!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, getString(R.string.msg_account_created), Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(this, MainActivity.class));
                                 finish();
                             });
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.msg_error_prefix, e.getMessage()), Toast.LENGTH_SHORT).show());
     }
 }

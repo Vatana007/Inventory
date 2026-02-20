@@ -5,77 +5,102 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    android:layout_marginHorizontal="4dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="3dp"
+    android:layout_marginHorizontal="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="1.5dp"
+    app:strokeColor="#F0F2F5"
     app:cardBackgroundColor="#FFFFFF">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:padding="16dp">
 
-        <LinearLayout
+        <View
+            android:id="@+id/iconBg"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/shape_circle_green"
+            android:backgroundTint="#F3E5F5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_info_details"
+            app:tint="@color/purple_700"
+            app:layout_constraintTop_toTopOf="@id/iconBg"
+            app:layout_constraintBottom_toBottomOf="@id/iconBg"
+            app:layout_constraintStart_toStartOf="@id/iconBg"
+            app:layout_constraintEnd_toEndOf="@id/iconBg"/>
+
+        <TextView
+            android:id="@+id/tvReportName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:text="Product Name"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#1A1C1E"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:letterSpacing="0.01"
+            app:layout_constraintStart_toEndOf="@id/iconBg"
+            app:layout_constraintTop_toTopOf="@id/iconBg"
+            app:layout_constraintEnd_toStartOf="@id/tvReportPrice"/>
 
-            <TextView
-                android:id="@+id/tvReportName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Product Name"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#212121"/>
+        <TextView
+            android:id="@+id/tvReportDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Added: Oct 24, 2023"
+            android:textSize="12sp"
+            android:textColor="#90A4AE"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="@id/tvReportName"
+            app:layout_constraintTop_toBottomOf="@id/tvReportName"/>
 
-            <TextView
-                android:id="@+id/tvReportDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Added: Oct 24, 2023"
-                android:textSize="12sp"
-                android:textColor="#757575"
-                android:layout_marginTop="4dp"/>
-
-            <TextView
-                android:id="@+id/tvReportPrice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="$20.00"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#2E7D32"
-                android:layout_marginTop="2dp"/>
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tvReportPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$20.00"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#4CAF50"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvReportName"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvReportPrice">
 
             <ImageView
                 android:id="@+id/btnPrint"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@android:drawable/ic_menu_share"
-                app:tint="#5C6BC0"
+                app:tint="#9E9E9E"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"/>
+                android:padding="6dp"/>
 
             <ImageView
                 android:id="@+id/btnSave"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@android:drawable/ic_menu_save"
-                app:tint="#43A047"
+                app:tint="@color/purple_700"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:layout_marginStart="8dp"/>
-
+                android:padding="4dp"
+                android:layout_marginStart="16dp"/>
         </LinearLayout>
-    </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

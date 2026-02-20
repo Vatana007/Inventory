@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FA"
+    android:fitsSystemWindows="true">
+
+    <!-- THE FIX: Changed elevation to 8dp so it stays ON TOP of the list items -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/purple_700"
+        app:elevation="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAppTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inventory List"
+                android:textColor="#FFFFFF"
+                android:textSize="28sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/desc_inventory"
+                android:textColor="#CCFFFFFF"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#22FFFFFF"
+                app:strokeColor="#44FFFFFF"
+                app:strokeWidth="1dp">
+
+                <EditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/hint_search_name"
+                    android:textColorHint="#CCFFFFFF"
+                    android:textColor="#FFFFFF"
+                    android:padding="12dp"
+                    android:drawableStart="@android:drawable/ic_menu_search"
+                    android:drawableTint="#CCFFFFFF"
+                    android:drawablePadding="8dp"
+                    android:textSize="14sp"
+                    android:maxLines="1"
+                    android:inputType="text"/>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/purple_700"
+            app:tabTextColor="#B3FFFFFF"
+            app:tabSelectedTextColor="#FFFFFF"
+            app:tabIndicatorColor="#FFFFFF"
+            app:tabIndicatorHeight="3dp"/>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:padding="12dp"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp"/>
+
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottomAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:backgroundTint="#FFFFFF"
+        app:fabCradleMargin="10dp"
+        app:fabCradleRoundedCornerRadius="20dp"
+        app:elevation="12dp">
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigationView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="16dp"
+            android:background="@android:color/transparent"
+            app:menu="@menu/bottom_nav_menu"
+            app:elevation="0dp"
+            app:itemIconTint="@color/purple_700"/>
+    </com.google.android.material.bottomappbar.BottomAppBar>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/purple_700"
+        app:tint="@android:color/white"
+        app:layout_anchor="@id/bottomAppBar"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
@@ -52,11 +53,13 @@ public class LoginActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (TextUtils.isEmpty(email)) {
-            etEmail.setError("Email is required");
+            // FIX: Uses string resource
+            etEmail.setError(getString(R.string.err_email_required));
             return;
         }
         if (TextUtils.isEmpty(password)) {
-            etPassword.setError("Password is required");
+            // FIX: Uses string resource
+            etPassword.setError(getString(R.string.err_password_required));
             return;
         }
 
@@ -67,11 +70,15 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Success: Fetch the role from Firestore
-                        checkUserRole(mAuth.getCurrentUser().getUid());
+                        if (mAuth.getCurrentUser() != null) {
+                            checkUserRole(mAuth.getCurrentUser().getUid());
+                        }
                     } else {
                         progressBar.setVisibility(View.GONE);
                         btnLogin.setEnabled(true);
-                        Toast.makeText(LoginActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        // FIX: Uses string resource with formatting for the error message
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown Error";
+                        Toast.makeText(LoginActivity.this, getString(R.string.msg_error_prefix, errorMsg), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -105,7 +112,24 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
                     btnLogin.setEnabled(true);
-                    Toast.makeText(this, "Failed to verify role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    // FIX: Uses string resource
+                    Toast.makeText(this, getString(R.string.err_verify_role, e.getMessage()), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // If the user opens the login screen but Firebase says they are active
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            String role = prefs.getString("USER_ROLE", "Staff");
+
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("USER_ROLE", role);
+            startActivity(intent);
+            finish();
+        }
     }
 }

@@ -1,3 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Inventory</string>
+    <string name="app_name">Inventify</string>
+    <string name="app_subtitle">Professional Inventory Management</string>
+
+    <!-- ROLES & TITLES -->
+    <string name="title_admin_dashboard">Admin Dashboard</string>
+    <string name="title_staff_dashboard">Staff Dashboard</string>
+    <string name="title_admin_inventory">Admin Inventory</string>
+    <string name="title_staff_inventory">Staff Inventory</string>
+    <string name="title_add_product">Add New Product</string>
+    <string name="title_edit_product">Edit Product</string>
+    <string name="title_create_account">Create Account</string>
+    <string name="title_welcome_back">Welcome Back</string>
+
+    <!-- BUTTONS -->
+    <string name="btn_save_product">Save Product</string>
+    <string name="btn_update_product">Update Product</string>
+    <string name="btn_login">Login</string>
+    <string name="btn_register_user">Register User</string>
+    <string name="btn_search_records">Search Records</string>
+    <string name="btn_edit_product">Edit Product Details</string>
+    <string name="btn_delete_product">Delete Product</string>
+    <string name="btn_export_data">Export Data</string>
+
+    <!-- TOAST MESSAGES -->
+    <string name="msg_fill_required">Please fill Name, Qty, and Price fields</string>
+    <string name="msg_fill_all">Please fill all fields</string>
+    <string name="msg_item_updated">Item Updated!</string>
+    <string name="msg_item_added">Item Added!</string>
+    <string name="msg_update_failed">Update Failed</string>
+    <string name="msg_failed_save">Failed to save</string>
+    <string name="msg_invalid_number">Invalid number</string>
+    <string name="msg_error_prefix">Error: %s</string>
+    <string name="msg_access_denied">Access Denied: Admins Only</string>
+    <string name="msg_stock_saved">Stock automatically saved!</string>
+    <string name="msg_stock_zero">Stock is already at 0</string>
+    <string name="msg_product_deleted">Product Deleted</string>
+    <string name="msg_found_scan">Found: %s</string>
+    <string name="msg_no_data">No data to export</string>
+    <string name="msg_file_saved">File Saved Successfully!</string>
+    <string name="msg_account_created">Account Created!</string>
+    <string name="msg_select_date_range">Select a date range first</string>
+    <string name="msg_logout">Logout</string>
+    <string name="msg_role">Role: %s</string>
+
+    <!-- LOGIN / REGISTER -->
+    <string name="err_email_required">Email is required</string>
+    <string name="err_password_required">Password is required</string>
+    <string name="err_verify_role">Failed to verify role: %s</string>
+    <string name="prompt_register">New user? Create an Account</string>
+    <string name="prompt_role">Select User Role:</string>
+
+    <!-- HINTS -->
+    <string name="hint_email">Email Address</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_name">Full Name</string>
+    <string name="hint_product_name">Product Name</string>
+    <string name="hint_category">Category (e.g. Drink, Snack)</string>
+    <string name="hint_qty">Initial Quantity</string>
+    <string name="hint_price">Base Price ($)</string>
+    <string name="hint_sale_price">Sale Price ($)</string>
+    <string name="hint_search">Search Inventory...</string>
+    <string name="hint_search_name">Search by name...</string>
+
+    <!-- DIALOGS & MENUS -->
+    <string name="dialog_delete_title">Delete Product</string>
+    <string name="dialog_delete_msg">Are you sure you want to delete %s? This action cannot be undone.</string>
+    <string name="dialog_btn_delete">Delete</string>
+    <string name="dialog_btn_cancel">Cancel</string>
+    <string name="dialog_export_report">Export Report</string>
+    <string name="dialog_choose_format">Choose format:</string>
+    <string name="dialog_pdf">PDF</string>
+    <string name="dialog_csv">CSV</string>
+    <string name="title_select_start_date">Select Start Date</string>
+    <string name="title_select_end_date">Select End Date</string>
+
+    <!-- LABELS, TABS & NAV -->
+    <string name="nav_home">Home</string>
+    <string name="nav_inventory">Inventory</string>
+    <string name="nav_report">Report</string>
+    <string name="nav_history">History</string>
+
+    <string name="tab_all_items">All Items</string>
+    <string name="tab_in_stock">In Stock</string>
+    <string name="tab_out_of_stock">Out of Stock</string>
+    <string name="label_select_date">Select Date</string>
+    <string name="msg_showing_all_logs">Showing all %1$d logs</string>
+    <string name="msg_found_records">Found %1$d records</string>
+
+    <string name="label_manage">Manage</string>
+    <string name="label_recently_added">Recently Added</string>
+    <string name="label_stock">STOCK</string>
+    <string name="label_assets">ASSETS</string>
+    <string name="label_start_date">START DATE</string>
+    <string name="label_end_date">END DATE</string>
+    <string name="label_total_value">TOTAL VALUE</string>
+    <string name="label_filter_date">Filter by Date Range</string>
+    <string name="label_from">From</string>
+    <string name="label_to">To</string>
+    <string name="label_clear">Clear</string>
+    <string name="label_reset">RESET</string>
+    <string name="header_admin_actions">Admin Actions</string>
+    <string name="header_product_details">Product Details</string>
+    <string name="desc_inventory">Track and manage your products</string>
+    <string name="desc_reports">Generate professional inventory reports</string>
+
+    <!-- REPORT -->
+    <string name="report_title_range">REPORT: %1$s TO %2$s</string>
+    <string name="report_title_from">REPORT: FROM %s</string>
+    <string name="report_title_until">REPORT: UNTIL %s</string>
+    <string name="report_title_full">FULL INVENTORY REPORT</string>
+    <string name="generated_by">Generated by Inventify App</string>
 </resources>

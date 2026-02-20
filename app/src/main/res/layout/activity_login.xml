@@ -16,7 +16,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome Back"
+        android:text="@string/title_welcome_back"
         android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="#333333"
@@ -25,7 +25,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Email Address"
+        android:hint="@string/hint_email"
         android:layout_marginBottom="16dp"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -39,7 +39,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Password"
+        android:hint="@string/hint_password"
         android:layout_marginBottom="24dp"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -61,7 +61,7 @@
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Login"
+        android:text="@string/btn_login"
         android:textSize="16sp"
         android:textStyle="bold"
         android:backgroundTint="@color/purple_700"
@@ -71,7 +71,7 @@
         android:id="@+id/tvRegister"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New user? Create an Account"
+        android:text="@string/prompt_register"
         android:textSize="14sp"
         android:textColor="@color/purple_700"
         android:textStyle="bold"

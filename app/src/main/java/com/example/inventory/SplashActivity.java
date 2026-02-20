@@ -1,10 +1,13 @@
 package com.example.inventory;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -13,18 +16,31 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Hide the Action Bar for a clean look
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
-        // Wait for 2 seconds (2000ms), then go to Login
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            // Check if user is already logged in? (Optional optimization)
-            // For now, let's just go to LoginActivity
-            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish(); // Prevents user from pressing "Back" to return to Splash
+
+            // 1. CHECK FIREBASE SESSION
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+            if (currentUser != null) {
+                // USER IS ALREADY LOGGED IN
+
+                // 2. RETRIEVE SAVED ROLE
+                // We get the role we saved in SharedPreferences during the first login
+                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                String savedRole = prefs.getString("USER_ROLE", "Staff");
+
+                // 3. GO STRAIGHT TO MAIN
+                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                intent.putExtra("USER_ROLE", savedRole);
+                startActivity(intent);
+            } else {
+                // NO SESSION FOUND - GO TO LOGIN
+                startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+            }
+
+            finish();
         }, 2000);
     }
 }

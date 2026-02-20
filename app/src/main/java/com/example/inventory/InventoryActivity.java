@@ -1,10 +1,12 @@
 package com.example.inventory;
 
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.PopupMenu;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,74 +16,82 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.inventory.adapter.InventoryAdapter;
 import com.example.inventory.model.InventoryItem;
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class InventoryActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private InventoryAdapter adapter;
-    private List<InventoryItem> itemList;
+    private List<InventoryItem> fullItemList;
+    private List<InventoryItem> displayList;
     private FirebaseFirestore db;
     private ListenerRegistration firestoreListener;
-    private String userRole = "Staff"; // Security default
-    private TextView tvTotalCount, tvTotalValue;
+    private String userRole = "Staff";
+    private TextView tvAppTitle;
+    private TabLayout tabLayout;
+
+    private EditText etSearch;
+    private String searchQuery = "";
+
+    private BottomAppBar bottomAppBar;
+    private FloatingActionButton fabAdd;
+
+    private int currentTab = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Using activity_main.xml to maintain visual consistency
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_inventory);
 
-        // 1. Initialize Views & Data
         db = FirebaseFirestore.getInstance();
-        itemList = new ArrayList<>();
-        tvTotalCount = findViewById(R.id.tvSummaryCount);
-        tvTotalValue = findViewById(R.id.tvSummaryValue);
+        fullItemList = new ArrayList<>();
+        displayList = new ArrayList<>();
 
-        // 2. FIX: Retrieve role and ensure it's not null
         if (getIntent().hasExtra("USER_ROLE")) {
             userRole = getIntent().getStringExtra("USER_ROLE");
         }
 
-        // 3. Setup Components
+        tvAppTitle = findViewById(R.id.tvAppTitle);
+        tabLayout = findViewById(R.id.tabLayout);
+        etSearch = findViewById(R.id.etSearch);
+        bottomAppBar = findViewById(R.id.bottomAppBar);
+        fabAdd = findViewById(R.id.fabAdd);
+
         applyRoleSecurity();
-        setupUserActions();
         setupRecyclerView();
+        setupTabs();
+        setupSearch();
         setupNavigation();
         loadInventoryRealTime();
+        setupKeyboardAutoHide();
     }
 
     private void applyRoleSecurity() {
-        // Find UI elements
-        View quickHeader = findViewById(R.id.tvQuickActionsHeader);
-        View quickGrid = findViewById(R.id.quickActionsGrid);
-        View fab = findViewById(R.id.fabAdd);
-        View stats = findViewById(R.id.statsContainer);
-        TextView tvTitle = findViewById(R.id.tvAppTitle);
-
-        // Hide specific "Home" sections that aren't needed in List view
-        if (quickHeader != null) quickHeader.setVisibility(View.GONE);
-        if (quickGrid != null) quickGrid.setVisibility(View.GONE);
-
-        // STAFF & ADMIN: Both can now see the stats (Total Items/Value) for consistency
-        if (stats != null) stats.setVisibility(View.VISIBLE);
-
-        // Header Title based on role
-        if (tvTitle != null) {
-            tvTitle.setText(userRole.equalsIgnoreCase("Admin") ? "Admin: All Inventory" : "Staff: Inventory List");
+        if (tvAppTitle != null) {
+            // FIX: Use strings.xml
+            if (userRole.equalsIgnoreCase("Admin")) {
+                tvAppTitle.setText(getString(R.string.title_admin_inventory));
+            } else {
+                tvAppTitle.setText(getString(R.string.title_staff_inventory));
+            }
         }
 
-        // FAB visibility: Only Admin can add items
-        if (fab != null) {
-            fab.setVisibility(userRole.equalsIgnoreCase("Admin") ? View.VISIBLE : View.GONE);
-            fab.setOnClickListener(v -> {
+        if (fabAdd != null) {
+            fabAdd.setVisibility(userRole.equalsIgnoreCase("Admin") ? View.VISIBLE : View.GONE);
+            fabAdd.setOnClickListener(v -> {
                 Intent intent = new Intent(this, AddItemActivity.class);
                 intent.putExtra("USER_ROLE", userRole);
                 startActivity(intent);
@@ -89,35 +99,69 @@ public class InventoryActivity extends AppCompatActivity {
         }
     }
 
-    private void setupUserActions() {
-        ImageView ivProfile = findViewById(R.id.ivProfile);
-        if (ivProfile != null) {
-            ivProfile.setOnClickListener(v -> {
-                PopupMenu popup = new PopupMenu(this, v);
-                popup.getMenu().add("Role: " + userRole).setEnabled(false);
-                popup.getMenu().add("Logout");
-                popup.setOnMenuItemClickListener(item -> {
-                    if (item.getTitle().equals("Logout")) {
-                        handleLogout();
-                        return true;
-                    }
-                    return false;
-                });
-                popup.show();
-            });
-        }
+    private void setupTabs() {
+        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.tab_all_items)));
+        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.tab_in_stock)));
+        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.tab_out_of_stock)));
 
-        View btnLogout = findViewById(R.id.btnLogout);
-        if (btnLogout != null) btnLogout.setOnClickListener(v -> handleLogout());
+        TabLayout.Tab allItemsTab = tabLayout.getTabAt(0);
+        if (allItemsTab != null) allItemsTab.select();
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                currentTab = tab.getPosition();
+                applyFilter();
+            }
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+    }
+
+    private void setupSearch() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchQuery = s.toString().toLowerCase().trim();
+                applyFilter();
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void setupKeyboardAutoHide() {
+        final View rootView = findViewById(android.R.id.content);
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            Rect r = new Rect();
+            rootView.getWindowVisibleDisplayFrame(r);
+            int screenHeight = rootView.getRootView().getHeight();
+            int keypadHeight = screenHeight - r.bottom;
+
+            if (keypadHeight > screenHeight * 0.15) {
+                if (bottomAppBar != null) bottomAppBar.setVisibility(View.GONE);
+                if (fabAdd != null) fabAdd.hide();
+            } else {
+                if (bottomAppBar != null) bottomAppBar.setVisibility(View.VISIBLE);
+                if (fabAdd != null && userRole.equalsIgnoreCase("Admin")) {
+                    fabAdd.show();
+                }
+            }
+        });
     }
 
     private void setupRecyclerView() {
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new InventoryAdapter(itemList, item -> {
+
+        adapter = new InventoryAdapter(displayList, item -> {
             Intent intent = new Intent(this, ItemDetailActivity.class);
             intent.putExtra("itemId", item.getId());
-            intent.putExtra("USER_ROLE", userRole); // Pass role to detail for stock-in/out logic
+            intent.putExtra("USER_ROLE", userRole);
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
@@ -126,24 +170,29 @@ public class InventoryActivity extends AppCompatActivity {
     private void setupNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
         if (bottomNav != null) {
+            bottomNav.setBackground(null);
+            bottomNav.getMenu().getItem(2).setEnabled(false);
             bottomNav.setSelectedItemId(R.id.nav_inventory);
+
             bottomNav.setOnItemSelectedListener(item -> {
                 int id = item.getItemId();
 
                 if (id == R.id.nav_home) {
                     Intent intent = new Intent(this, MainActivity.class);
-                    intent.putExtra("USER_ROLE", userRole); // Crucial: Pass role back home
+                    intent.putExtra("USER_ROLE", userRole);
                     startActivity(intent);
-                    finish();
+                    overridePendingTransition(0,0);
                     return true;
                 } else if (id == R.id.nav_report) {
                     if (userRole.equalsIgnoreCase("Staff")) {
-                        Toast.makeText(this, "Access Denied: Admins Only", Toast.LENGTH_SHORT).show();
+                        // FIX: Use strings.xml
+                        Toast.makeText(this, getString(R.string.msg_access_denied), Toast.LENGTH_SHORT).show();
                         return false;
                     }
                     Intent intent = new Intent(this, ReportActivity.class);
                     intent.putExtra("USER_ROLE", userRole);
                     startActivity(intent);
+                    overridePendingTransition(0,0);
                     return true;
                 }
                 return id == R.id.nav_inventory;
@@ -154,37 +203,52 @@ public class InventoryActivity extends AppCompatActivity {
     private void loadInventoryRealTime() {
         firestoreListener = db.collection("inventory").addSnapshotListener((snapshots, e) -> {
             if (e != null || snapshots == null) return;
-
-            itemList.clear();
-            int totalItems = 0;
-            double totalValue = 0.0;
-
+            fullItemList.clear();
             for (DocumentSnapshot doc : snapshots) {
                 InventoryItem item = doc.toObject(InventoryItem.class);
                 if (item != null) {
                     item.setId(doc.getId());
-                    itemList.add(item);
-
-                    // Calculate totals for the summary cards
-                    totalItems += item.getQuantity();
-                    totalValue += (item.getQuantity() * item.getPrice());
+                    fullItemList.add(item);
                 }
             }
 
-            // Update UI Cards
-            if (tvTotalCount != null) tvTotalCount.setText(String.valueOf(totalItems));
-            if (tvTotalValue != null) tvTotalValue.setText("$" + String.format("%.2f", totalValue));
-
-            adapter.notifyDataSetChanged();
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+            Collections.sort(fullItemList, (item1, item2) -> {
+                try {
+                    String d1Str = (item1.getDateAdded() != null) ? item1.getDateAdded() : "Jan 01, 1970";
+                    String d2Str = (item2.getDateAdded() != null) ? item2.getDateAdded() : "Jan 01, 1970";
+                    Date d1 = sdf.parse(d1Str);
+                    Date d2 = sdf.parse(d2Str);
+                    return d2.compareTo(d1);
+                } catch (Exception ex) { return 0; }
+            });
+            applyFilter();
         });
     }
 
-    private void handleLogout() {
-        FirebaseAuth.getInstance().signOut();
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+    private void applyFilter() {
+        displayList.clear();
+        for (InventoryItem item : fullItemList) {
+            boolean matchesTab = false;
+
+            if (currentTab == 0) matchesTab = true;
+            else if (currentTab == 1) matchesTab = (item.getQuantity() > 0);
+            else if (currentTab == 2) matchesTab = (item.getQuantity() <= 0);
+
+            boolean matchesSearch = true;
+            if (!searchQuery.isEmpty()) {
+                String name = item.getName().toLowerCase();
+                String barcode = (item.getBarcode() != null) ? item.getBarcode().toLowerCase() : "";
+                if (!name.contains(searchQuery) && !barcode.contains(searchQuery)) {
+                    matchesSearch = false;
+                }
+            }
+
+            if (matchesTab && matchesSearch) {
+                displayList.add(item);
+            }
+        }
+        adapter.notifyDataSetChanged();
     }
 
     @Override

@@ -7,9 +7,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-// Make sure this import matches your actual Model package name
 import com.example.inventory.model.InventoryItem;
-
+import com.example.inventory.model.Batch; // IMPORT BATCH MODEL
+import com.example.inventory.db.LocalDatabaseHelper; // IMPORT SQLITE HELPER
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -19,12 +19,14 @@ import java.util.Locale;
 
 public class AddItemActivity extends AppCompatActivity {
 
-    private TextInputEditText etName, etQty, etPrice, etMinStock;
+    private TextInputEditText etName, etCategory, etQty, etPrice, etSale;
     private FirebaseFirestore db;
+    private LocalDatabaseHelper localDb; // SQLITE
 
-    // Variables to handle "Edit Mode"
     private String existingItemId = null;
     private String originalDate = null;
+    private String originalBarcode = "";
+    private int currentMinStock = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,92 +34,116 @@ public class AddItemActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_item);
 
         db = FirebaseFirestore.getInstance();
+        localDb = new LocalDatabaseHelper(this); // INIT SQLITE
 
-        // 1. Initialize Views
         etName = findViewById(R.id.etName);
+        etCategory = findViewById(R.id.etCategory);
         etQty = findViewById(R.id.etQty);
         etPrice = findViewById(R.id.etPrice);
-        etMinStock = findViewById(R.id.etMinStock);
+        etSale = findViewById(R.id.etSale);
 
         Button btnSave = findViewById(R.id.btnSave);
         ImageView btnBack = findViewById(R.id.btnBack);
         TextView tvTitle = findViewById(R.id.tvTitle);
 
-        // 2. Setup Back Button
         btnBack.setOnClickListener(v -> finish());
 
-        // 3. CHECK: Are we editing an existing item?
         if (getIntent().hasExtra("itemId")) {
             existingItemId = getIntent().getStringExtra("itemId");
 
-            // Switch UI to "Edit Mode"
-            tvTitle.setText("Edit Product");
-            btnSave.setText("Update Product");
+            if(tvTitle != null) tvTitle.setText(getString(R.string.title_edit_product));
+            btnSave.setText(getString(R.string.btn_update_product));
 
-            // Pre-fill the data from the Intent
             etName.setText(getIntent().getStringExtra("name"));
+
+            if (getIntent().hasExtra("category")) {
+                etCategory.setText(getIntent().getStringExtra("category"));
+            }
+
             etQty.setText(String.valueOf(getIntent().getIntExtra("qty", 0)));
             etPrice.setText(String.valueOf(getIntent().getDoubleExtra("price", 0.0)));
-            etMinStock.setText(String.valueOf(getIntent().getIntExtra("minStock", 0)));
 
-            // Preserve the original date if passed
+            if (getIntent().hasExtra("sale")) {
+                etSale.setText(String.valueOf(getIntent().getDoubleExtra("sale", 0.0)));
+            }
+
+            if (getIntent().hasExtra("minStock")) {
+                currentMinStock = getIntent().getIntExtra("minStock", 5);
+            }
+
             if(getIntent().hasExtra("dateAdded")){
                 originalDate = getIntent().getStringExtra("dateAdded");
             }
+            if(getIntent().hasExtra("barcode")){
+                originalBarcode = getIntent().getStringExtra("barcode");
+            }
+        } else {
+            if(tvTitle != null) tvTitle.setText(getString(R.string.title_add_product));
+            btnSave.setText(getString(R.string.btn_save_product));
         }
 
-        // 4. Save Button Click
         btnSave.setOnClickListener(v -> saveItem());
     }
 
     private void saveItem() {
         String name = etName.getText().toString().trim();
+        String category = etCategory.getText().toString().trim();
         String qtyStr = etQty.getText().toString().trim();
         String priceStr = etPrice.getText().toString().trim();
-        String minStockStr = etMinStock.getText().toString().trim();
+        String saleStr = etSale.getText().toString().trim();
 
-        // Validation
         if (name.isEmpty() || qtyStr.isEmpty() || priceStr.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_fill_required), Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Parse Numbers
         int qty = Integer.parseInt(qtyStr);
         double price = Double.parseDouble(priceStr);
-        int minStock = minStockStr.isEmpty() ? 0 : Integer.parseInt(minStockStr);
+        double sale = saleStr.isEmpty() ? 0.0 : Double.parseDouble(saleStr);
 
-        // Date Logic
         String dateToSave;
-        if (originalDate != null) {
-            dateToSave = originalDate; // Keep original date if editing
+        if (originalDate != null && !originalDate.isEmpty()) {
+            dateToSave = originalDate;
         } else {
-            // Generate Today's Date (Format: Oct 24, 2023)
             dateToSave = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(new Date());
         }
 
-        // Create the Item Object (Using the NEW Constructor with Date)
-        // Ensure your InventoryItem.java model has this constructor!
-        InventoryItem item = new InventoryItem(name, qty, price, minStock, dateToSave);
+        InventoryItem item = new InventoryItem(name, qty, price, sale, category, currentMinStock, dateToSave, originalBarcode);
 
-        // Save to Firebase
+        // CASE 1: UPDATE EXISTING
         if (existingItemId != null) {
-            // UPDATE Existing Item
             db.collection("inventory").document(existingItemId)
-                    .set(item) // Overwrites data with the new values
+                    .set(item)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Item Updated!", Toast.LENGTH_SHORT).show();
+                        // SQLITE LOG
+                        localDb.logAction("UPDATE", name);
+
+                        Toast.makeText(this, getString(R.string.msg_item_updated), Toast.LENGTH_SHORT).show();
                         finish();
                     })
-                    .addOnFailureListener(e -> Toast.makeText(this, "Update Failed", Toast.LENGTH_SHORT).show());
-        } else {
-            // ADD New Item
+                    .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.msg_update_failed), Toast.LENGTH_SHORT).show());
+        }
+        // CASE 2: ADD NEW
+        else {
             db.collection("inventory").add(item)
                     .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(this, "Item Added!", Toast.LENGTH_SHORT).show();
+                        String newItemId = documentReference.getId();
+
+                        // --- FIFO BONUS: Create the First Batch ---
+                        // We create a sub-collection "batches" for this item
+                        Batch initialBatch = new Batch(qty);
+                        db.collection("inventory").document(newItemId)
+                                .collection("batches")
+                                .add(initialBatch);
+                        // ------------------------------------------
+
+                        // SQLITE LOG
+                        localDb.logAction("CREATE", name);
+
+                        Toast.makeText(this, getString(R.string.msg_item_added), Toast.LENGTH_SHORT).show();
                         finish();
                     })
-                    .addOnFailureListener(e -> Toast.makeText(this, "Error adding item", Toast.LENGTH_SHORT).show());
+                    .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.msg_error_prefix, e.getMessage()), Toast.LENGTH_SHORT).show());
         }
     }
 }

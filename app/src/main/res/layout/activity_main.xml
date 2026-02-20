@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"
+    android:background="#F0F2F5"
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
@@ -15,308 +15,349 @@
         android:paddingBottom="100dp"
         android:clipToPadding="false">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
+            android:layout_height="wrap_content">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:background="@color/purple_700"/>
+
+            <View
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="-50dp"
+                android:layout_marginTop="-50dp"
+                android:background="@drawable/shape_circle_green"
+                android:backgroundTint="#22FFFFFF"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="top"
-                android:layout_marginBottom="24dp">
+                android:orientation="vertical"
+                android:paddingHorizontal="24dp"
+                android:paddingTop="48dp">
 
                 <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Welcome back,"
-                        android:textColor="#757575"
-                        android:textSize="14sp"/>
-
-                    <TextView
-                        android:id="@+id/tvAppTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Admin User"
-                        android:textColor="#000000"
-                        android:textSize="24sp"
-                        android:textStyle="bold"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnLogout"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:padding="0dp"
-                        android:text="Logout"
-                        android:textColor="#D32F2F"
-                        android:textSize="12sp"
-                        app:icon="@android:drawable/ic_lock_power_off"
-                        app:iconPadding="4dp"
-                        app:iconSize="14dp"
-                        app:iconTint="#D32F2F" />
-                </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/ivProfile"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@mipmap/ic_launcher_round"
-                    android:background="@drawable/shape_circle_green"
-                    android:backgroundTint="#EEE"
-                    android:padding="4dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackgroundBorderless"/>
-            </LinearLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/searchLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Search inventory..."
-                app:startIconDrawable="@android:drawable/ic_menu_search"
-                app:startIconTint="#000000"
-                app:boxBackgroundColor="#FFFFFF"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
-                app:boxStrokeWidth="0dp"
-                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-                android:layout_marginBottom="24dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="24dp">
 
-            <LinearLayout
-                android:id="@+id/statsContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#E0E0E0">
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/ivProfile"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@mipmap/ic_launcher_round"
+                        android:padding="2dp"
+                        android:background="#FFFFFF"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                        android:clickable="true"
+                        android:focusable="true"/>
 
                     <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dashboard"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="12sp"
+                            android:textAllCaps="true"
+                            android:letterSpacing="0.1"
+                            android:textStyle="bold"/>
+
+                        <TextView
+                            android:id="@+id/tvAppTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Admin User"
+                            android:textColor="#FFFFFF"
+                            android:textSize="22sp"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/btnLogout"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@android:drawable/ic_lock_power_off"
+                        app:tint="#FFFFFF"
+                        android:padding="8dp"
+                        android:background="@drawable/shape_circle_green"
+                        android:backgroundTint="#33FFFFFF"
+                        android:clickable="true"
+                        android:focusable="true"/>
+                </LinearLayout>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="8dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    android:layout_marginBottom="24dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/searchLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="16dp"
-                        android:orientation="vertical">
+                        android:hint="@string/hint_search"
+                        app:startIconDrawable="@android:drawable/ic_menu_search"
+                        app:startIconTint="#78909C"
+                        app:boxBackgroundColor="#FFFFFF"
+                        app:boxStrokeWidth="0dp"
+                        app:hintTextColor="#78909C">
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_sort_by_size"
-                            app:tint="@color/purple_700"/>
-
-                        <TextView
-                            android:id="@+id/tvSummaryCount"
-                            android:layout_width="wrap_content"
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSearch"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="0"
-                            android:textSize="28sp"
-                            android:textStyle="bold"
-                            android:textColor="#000000"
-                            android:layout_marginTop="8dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total Items"
-                            android:textSize="12sp"
-                            android:textColor="#757575"/>
-                    </LinearLayout>
+                            android:inputType="text"
+                            android:textColor="#37474F"/>
+                    </com.google.android.material.textfield.TextInputLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
+                <LinearLayout
+                    android:id="@+id/statsContainer"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#E0E0E0">
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="32dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="16dp"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="12dp">
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@android:drawable/ic_menu_sort_by_size"
+                                    app:tint="@color/purple_700"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/label_stock"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#90A4AE"
+                                    android:layout_marginStart="8dp"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvSummaryCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="28sp"
+                                android:textStyle="bold"
+                                android:textColor="#263238"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="16dp"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="12dp">
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@android:drawable/ic_menu_info_details"
+                                    app:tint="#2E7D32"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/label_assets"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#90A4AE"
+                                    android:layout_marginStart="8dp"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvSummaryValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="$0"
+                                android:textSize="28sp"
+                                android:textStyle="bold"
+                                android:textColor="#2E7D32"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvQuickActionsHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_manage"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#37474F"
+                    android:layout_marginBottom="16dp"/>
+
+                <LinearLayout
+                    android:id="@+id/quickActionsGrid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="32dp">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:padding="16dp"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:id="@+id/btnQuickAdd"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@android:drawable/ic_input_add"
+                            app:backgroundTint="#E3F2FD"
+                            app:tint="#1565C0"
+                            app:elevation="0dp"
+                            app:fabSize="normal"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Add New"
+                            android:textSize="12sp"
+                            android:textColor="#546E7A"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:id="@+id/btnQuickReport"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:src="@android:drawable/ic_menu_info_details"
-                            app:tint="#2E7D32"/>
-
-                        <TextView
-                            android:id="@+id/tvSummaryValue"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="$0"
-                            android:textSize="28sp"
-                            android:textStyle="bold"
-                            android:textColor="#000000"
-                            android:layout_marginTop="8dp"/>
-
+                            app:backgroundTint="#F3E5F5"
+                            app:tint="#7B1FA2"
+                            app:elevation="0dp"
+                            app:fabSize="normal"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Value"
+                            android:text="Reports"
                             android:textSize="12sp"
-                            android:textColor="#757575"/>
+                            android:textColor="#546E7A"
+                            android:layout_marginTop="8dp"/>
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:id="@+id/btnQuickScan"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@android:drawable/ic_menu_camera"
+                            app:backgroundTint="#E0F2F1"
+                            app:tint="#00695C"
+                            app:elevation="0dp"
+                            app:fabSize="normal"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Scan"
+                            android:textSize="12sp"
+                            android:textColor="#546E7A"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:id="@+id/btnQuickAlerts"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@android:drawable/ic_menu_recent_history"
+                            app:backgroundTint="#FFEBEE"
+                            app:tint="#C62828"
+                            app:elevation="0dp"
+                            app:fabSize="normal"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="History"
+                            android:textSize="12sp"
+                            android:textColor="#546E7A"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvListHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_recently_added"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#37474F"
+                    android:layout_marginBottom="12dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"/>
+
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvQuickActionsHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Quick Actions"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#000000"
-                android:layout_marginBottom="16dp"/>
-
-            <LinearLayout
-                android:id="@+id/quickActionsGrid"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/btnQuickAdd"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@android:drawable/ic_input_add"
-                        app:backgroundTint="#E3F2FD"
-                        app:tint="#1976D2"
-                        app:elevation="0dp"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Add Stock"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/btnQuickReport"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@android:drawable/ic_menu_info_details"
-                        app:backgroundTint="#F3E5F5"
-                        app:tint="#7B1FA2"
-                        app:elevation="0dp"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Reports"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/btnQuickScan"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@android:drawable/ic_menu_camera"
-                        app:backgroundTint="#E0F2F1"
-                        app:tint="#00796B"
-                        app:elevation="0dp"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Scan"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/btnQuickAlerts"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@android:drawable/ic_dialog_alert"
-                        app:backgroundTint="#FFEBEE"
-                        app:tint="#D32F2F"
-                        app:elevation="0dp"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="History"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvListHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Recent Items"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#000000"
-                android:layout_marginBottom="16dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"/>
-
-        </LinearLayout>
+        </RelativeLayout>
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.bottomappbar.BottomAppBar
@@ -326,7 +367,8 @@
         android:layout_gravity="bottom"
         android:backgroundTint="#FFFFFF"
         app:fabCradleMargin="10dp"
-        app:fabCradleRoundedCornerRadius="20dp">
+        app:fabCradleRoundedCornerRadius="20dp"
+        app:elevation="12dp">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"

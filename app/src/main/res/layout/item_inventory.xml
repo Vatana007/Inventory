@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
@@ -18,7 +18,7 @@
             android:id="@+id/iconBg"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="@drawable/ic_launcher_background"
+            android:background="@drawable/shape_circle_green"
             android:backgroundTint="#F0F0F0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -27,18 +27,18 @@
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@mipmap/ic_launcher"
+            android:src="@android:drawable/ic_menu_sort_by_size"
             app:tint="#757575"
-            app:layout_constraintStart_toStartOf="@id/iconBg"
-            app:layout_constraintEnd_toEndOf="@id/iconBg"
             app:layout_constraintTop_toTopOf="@id/iconBg"
-            app:layout_constraintBottom_toBottomOf="@id/iconBg"/>
+            app:layout_constraintBottom_toBottomOf="@id/iconBg"
+            app:layout_constraintStart_toStartOf="@id/iconBg"
+            app:layout_constraintEnd_toEndOf="@id/iconBg"/>
 
         <TextView
             android:id="@+id/tvName"
+            tools:text="Product Name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Product Name"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="#212121"
@@ -57,6 +57,17 @@
             android:layout_marginTop="4dp"
             app:layout_constraintStart_toStartOf="@id/tvName"
             app:layout_constraintTop_toBottomOf="@id/tvName"/>
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Added: -"
+            android:textSize="12sp"
+            android:textColor="#9E9E9E"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="@id/tvName"
+            app:layout_constraintTop_toBottomOf="@id/tvQty"/>
 
         <View
             android:id="@+id/viewStatus"

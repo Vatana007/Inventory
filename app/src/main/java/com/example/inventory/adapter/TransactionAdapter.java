@@ -35,22 +35,33 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
         holder.tvName.setText(item.getItemName());
 
-        // Format Date
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault());
+        // Date Format
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy  •  hh:mm a", Locale.getDefault());
         String dateStr = (item.getTimestamp() != null) ? sdf.format(item.getTimestamp()) : "N/A";
         holder.tvDate.setText(dateStr);
 
-        // Styling based on IN or OUT
+        // --- COLOR LOGIC ---
         if ("OUT".equals(item.getType())) {
+            // STOCK OUT STYLE (Red)
             holder.tvQty.setText("-" + item.getQuantityChanged());
-            holder.tvQty.setTextColor(Color.parseColor("#D32F2F")); // Red
-            holder.imgType.setImageResource(android.R.drawable.arrow_down_float);
-            holder.imgType.setColorFilter(Color.parseColor("#D32F2F"));
+            holder.tvQty.setTextColor(Color.parseColor("#C62828")); // Dark Red Text
+
+            // Change the background tint of the pill
+            holder.tvQty.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#FFEBEE"))); // Light Red BG
+
+            // Change the sidebar strip color
+            holder.imgType.setColorFilter(Color.parseColor("#D32F2F")); // Red Strip
+
         } else {
+            // STOCK IN STYLE (Green)
             holder.tvQty.setText("+" + item.getQuantityChanged());
-            holder.tvQty.setTextColor(Color.parseColor("#388E3C")); // Green
-            holder.imgType.setImageResource(android.R.drawable.arrow_up_float);
-            holder.imgType.setColorFilter(Color.parseColor("#388E3C"));
+            holder.tvQty.setTextColor(Color.parseColor("#2E7D32")); // Dark Green Text
+
+            // Change the background tint of the pill
+            holder.tvQty.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#E8F5E9"))); // Light Green BG
+
+            // Change the sidebar strip color
+            holder.imgType.setColorFilter(Color.parseColor("#43A047")); // Green Strip
         }
     }
 

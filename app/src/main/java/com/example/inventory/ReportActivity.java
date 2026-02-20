@@ -12,6 +12,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,11 +46,14 @@ public class ReportActivity extends AppCompatActivity {
     private List<InventoryItem> fullList;
     private List<InventoryItem> filteredList;
     private FirebaseFirestore db;
-    private TextView tvCurrentMonth;
 
-    private String selectedMonthFilter = null;
+    private TextView tvStartDate, tvEndDate, tvReportTotal;
+    private Button btnClearDate;
 
-    // THE FIX: Create a variable to hold the role
+    private Date startDate = null;
+    private Date endDate = null;
+    private final SimpleDateFormat displayFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+
     private String userRole = "Staff";
 
     @Override
@@ -56,7 +61,6 @@ public class ReportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report);
 
-        // 1. DATA PERSISTENCE FIX: Catch the role from the Intent
         if (getIntent().hasExtra("USER_ROLE")) {
             userRole = getIntent().getStringExtra("USER_ROLE");
         }
@@ -65,21 +69,43 @@ public class ReportActivity extends AppCompatActivity {
         fullList = new ArrayList<>();
         filteredList = new ArrayList<>();
 
-        tvCurrentMonth = findViewById(R.id.tvCurrentMonth);
+        tvStartDate = findViewById(R.id.tvStartDate);
+        tvEndDate = findViewById(R.id.tvEndDate);
+        tvReportTotal = findViewById(R.id.tvReportTotal);
+        btnClearDate = findViewById(R.id.btnClearDate);
+
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new ReportAdapter(filteredList);
+        // THE FIX: We now handle the click right here and open the ItemDetailActivity
+        adapter = new ReportAdapter(filteredList, item -> {
+            Intent intent = new Intent(ReportActivity.this, ItemDetailActivity.class);
+            intent.putExtra("itemId", item.getId());
+            intent.putExtra("USER_ROLE", userRole);
+            startActivity(intent);
+        });
         recyclerView.setAdapter(adapter);
 
-        findViewById(R.id.btnFilterDate).setOnClickListener(v -> showMonthPicker());
-        findViewById(R.id.btnExportPdf).setOnClickListener(v -> showExportDialog());
-
+        setupClickListeners();
         setupNavigation();
         loadReports();
     }
 
-    // --- DATA LOADING & FILTERING (Logic remains the same) ---
+    private void setupClickListeners() {
+        findViewById(R.id.btnStartDate).setOnClickListener(v -> showDatePicker(true));
+        findViewById(R.id.btnEndDate).setOnClickListener(v -> showDatePicker(false));
+        findViewById(R.id.btnExportPdf).setOnClickListener(v -> showExportDialog());
+
+        btnClearDate.setOnClickListener(v -> {
+            startDate = null;
+            endDate = null;
+            tvStartDate.setText("Select Date");
+            tvEndDate.setText("Select Date");
+            btnClearDate.setVisibility(View.GONE);
+            applyFilter();
+        });
+    }
+
     private void loadReports() {
         db.collection("inventory")
                 .orderBy("dateAdded")
@@ -99,56 +125,91 @@ public class ReportActivity extends AppCompatActivity {
                 });
     }
 
-    private void showMonthPicker() {
+    private void showDatePicker(boolean isStart) {
         Calendar cal = Calendar.getInstance();
+
+        if (isStart && startDate != null) cal.setTime(startDate);
+        else if (!isStart && endDate != null) cal.setTime(endDate);
+
         DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            cal.set(Calendar.YEAR, year);
-            cal.set(Calendar.MONTH, month);
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
-            selectedMonthFilter = sdf.format(cal.getTime());
-            tvCurrentMonth.setText("Showing: " + selectedMonthFilter);
+            Calendar selectedCal = Calendar.getInstance();
+
+            if (isStart) {
+                selectedCal.set(year, month, dayOfMonth, 0, 0, 0);
+                startDate = selectedCal.getTime();
+                tvStartDate.setText(displayFormat.format(startDate));
+            } else {
+                selectedCal.set(year, month, dayOfMonth, 23, 59, 59);
+                endDate = selectedCal.getTime();
+                tvEndDate.setText(displayFormat.format(endDate));
+            }
+
+            btnClearDate.setVisibility(View.VISIBLE);
             applyFilter();
+
         }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-        dialog.setTitle("Select Month");
+
+        dialog.setTitle(isStart ? getString(R.string.title_select_start_date) : getString(R.string.title_select_end_date));
         dialog.show();
     }
 
     private void applyFilter() {
         filteredList.clear();
-        if (selectedMonthFilter == null) {
+        double totalValue = 0;
+
+        if (startDate == null && endDate == null) {
             filteredList.addAll(fullList);
-            tvCurrentMonth.setText("Showing: All Time");
         } else {
-            SimpleDateFormat originalFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
-            SimpleDateFormat compareFormat = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
             for (InventoryItem item : fullList) {
                 String dateStr = item.getDateAdded();
                 if (dateStr != null && !dateStr.isEmpty()) {
                     try {
-                        Date itemDate = originalFormat.parse(dateStr);
-                        if (itemDate != null && compareFormat.format(itemDate).equals(selectedMonthFilter)) {
-                            filteredList.add(item);
+                        Date itemDate = displayFormat.parse(dateStr);
+                        if (itemDate != null) {
+                            boolean passes = true;
+                            if (startDate != null && itemDate.before(startDate)) passes = false;
+                            if (endDate != null && itemDate.after(endDate)) passes = false;
+
+                            if (passes) {
+                                filteredList.add(item);
+                            }
                         }
                     } catch (Exception e) { e.printStackTrace(); }
                 }
             }
         }
+
+        for (InventoryItem item : filteredList) {
+            totalValue += (item.getQuantity() * item.getPrice());
+        }
+        tvReportTotal.setText("$" + String.format("%.2f", totalValue));
+
         adapter.notifyDataSetChanged();
     }
 
-    // --- EXPORT LOGIC (Logic remains same) ---
     private void showExportDialog() {
         if (filteredList.isEmpty()) {
             Toast.makeText(this, "No data to export", Toast.LENGTH_SHORT).show();
             return;
         }
         new AlertDialog.Builder(this)
-                .setTitle("Export Report")
-                .setMessage("Choose a format for your report:")
-                .setPositiveButton("PDF", (dialog, which) -> generateBulkPDF())
-                .setNegativeButton("CSV (Excel)", (dialog, which) -> generateCSV())
-                .setNeutralButton("Cancel", null)
+                .setTitle(getString(R.string.dialog_export_report))
+                .setMessage(getString(R.string.dialog_choose_format))
+                .setPositiveButton(getString(R.string.dialog_pdf), (dialog, which) -> generateBulkPDF())
+                .setNegativeButton(getString(R.string.dialog_csv), (dialog, which) -> generateCSV())
+                .setNeutralButton(getString(R.string.dialog_btn_cancel), null)
                 .show();
+    }
+
+    private String getDynamicReportTitle() {
+        if (startDate != null && endDate != null) {
+            return "REPORT: " + displayFormat.format(startDate) + " TO " + displayFormat.format(endDate);
+        } else if (startDate != null) {
+            return "REPORT: FROM " + displayFormat.format(startDate);
+        } else if (endDate != null) {
+            return "REPORT: UNTIL " + displayFormat.format(endDate);
+        }
+        return "FULL INVENTORY REPORT";
     }
 
     private void generateBulkPDF() {
@@ -157,22 +218,26 @@ public class ReportActivity extends AppCompatActivity {
         PdfDocument.Page page = document.startPage(pageInfo);
         Canvas canvas = page.getCanvas();
         Paint paint = new Paint();
+
         paint.setColor(Color.BLACK);
-        paint.setTextSize(24);
+        paint.setTextSize(20);
         paint.setFakeBoldText(true);
-        String reportTitle = (selectedMonthFilter != null) ? "REPORT: " + selectedMonthFilter.toUpperCase() : "FULL INVENTORY REPORT";
-        canvas.drawText(reportTitle, 50, 60, paint);
+        canvas.drawText(getDynamicReportTitle(), 50, 60, paint);
+
         paint.setTextSize(14);
         paint.setFakeBoldText(false);
         paint.setColor(Color.DKGRAY);
         canvas.drawText("Generated by Inventify App", 50, 85, paint);
+
         paint.setColor(Color.LTGRAY);
         paint.setStrokeWidth(2);
         canvas.drawLine(50, 100, 545, 100, paint);
+
         paint.setColor(Color.BLACK);
         paint.setTextSize(14);
         int y = 140;
         double totalValue = 0;
+
         for (InventoryItem item : filteredList) {
             String line = item.getName() + "  |  Qty: " + item.getQuantity() + "  |  $" + item.getPrice();
             canvas.drawText(line, 50, y, paint);
@@ -180,18 +245,21 @@ public class ReportActivity extends AppCompatActivity {
             totalValue += (item.getPrice() * item.getQuantity());
             if (y > 780) break;
         }
+
         paint.setFakeBoldText(true);
         canvas.drawLine(50, y + 10, 545, y + 10, paint);
         canvas.drawText("TOTAL VALUE: $" + String.format("%.2f", totalValue), 50, y + 40, paint);
+
         document.finishPage(page);
-        String safeName = (selectedMonthFilter != null) ? selectedMonthFilter.replace(" ", "_") : "Full_Report";
+
+        String safeName = (startDate != null) ? "Filtered_Range" : "Full_Report";
         String fileName = "Inventify_" + safeName + "_" + System.currentTimeMillis() + ".pdf";
         saveFile(document, fileName, "application/pdf");
     }
 
     private void generateCSV() {
         StringBuilder data = new StringBuilder();
-        data.append("Name,Quantity,Price,Min Stock,Date Added,Value\n");
+        data.append("Name,Quantity,Price,Min Stock,Date Added,Total Value\n");
         for (InventoryItem item : filteredList) {
             double totalVal = item.getQuantity() * item.getPrice();
             data.append(item.getName()).append(",");
@@ -234,7 +302,6 @@ public class ReportActivity extends AppCompatActivity {
         }
     }
 
-    // --- NAVIGATION FIX ---
     private void setupNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
         bottomNav.setBackground(null);
@@ -252,7 +319,6 @@ public class ReportActivity extends AppCompatActivity {
             }
 
             if (intent != null) {
-                // THE FIX: Re-attach the USER_ROLE so MainActivity stays Admin
                 intent.putExtra("USER_ROLE", userRole);
                 startActivity(intent);
                 overridePendingTransition(0,0);
@@ -261,7 +327,6 @@ public class ReportActivity extends AppCompatActivity {
             return id == R.id.nav_report;
         });
 
-        // ALSO FIX: Passing role to AddItemActivity
         findViewById(R.id.fabAdd).setOnClickListener(v -> {
             Intent intent = new Intent(this, AddItemActivity.class);
             intent.putExtra("USER_ROLE", userRole);

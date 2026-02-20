@@ -2,28 +2,30 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"
+    android:background="#F8F9FB"
     android:fitsSystemWindows="true">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/purple_700"
-            android:padding="24dp"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="48dp"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reports &amp; Export"
+                android:text="@string/nav_report"
                 android:textColor="#FFFFFF"
                 android:textSize="28sp"
                 android:textStyle="bold"/>
@@ -31,73 +33,167 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Filter by month to export PDF or CSV."
+                android:text="@string/desc_reports"
                 android:textColor="#CCFFFFFF"
                 android:textSize="14sp"
                 android:layout_marginTop="4dp"/>
+        </LinearLayout>
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnFilterDate"
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="-30dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:cardCornerRadius="8dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:contentPadding="12dp">
+                android:orientation="vertical"
+                android:padding="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false">
+
+                    <LinearLayout
+                        android:id="@+id/btnStartDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_start_date"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="#9E9E9E"/>
+
+                        <TextView
+                            android:id="@+id/tvStartDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select Date"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#212121"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#EEEEEE"
+                        android:layout_marginHorizontal="16dp"/>
+
+                    <LinearLayout
+                        android:id="@+id/btnEndDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_end_date"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="#9E9E9E"/>
+
+                        <TextView
+                            android:id="@+id/tvEndDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select Date"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#212121"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#F0F0F0"
+                    android:layout_marginVertical="16dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
                     android:gravity="center_vertical">
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_menu_my_calendar"
-                        app:tint="@color/purple_700"/>
-
-                    <TextView
-                        android:id="@+id/tvCurrentMonth"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:text="Showing: All Time"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#333"
-                        android:layout_marginStart="16dp"/>
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_total_value"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="#9E9E9E"/>
+                        <TextView
+                            android:id="@+id/tvReportTotal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="$0.00"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="#4CAF50"/>
+                    </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_menu_more"
-                        app:tint="#757575"/>
+                    <Button
+                        android:id="@+id/btnClearDate"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_clear"
+                        android:textColor="#D32F2F"
+                        android:visibility="gone"/>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="12dp"
-            android:clipToPadding="false"/>
-
-    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:padding="12dp"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp"/>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/btnExportPdf"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="100dp"
-        android:text="Export Data"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="90dp"
+        android:text="@string/btn_export_data"
         android:textColor="#FFFFFF"
-        android:textStyle="bold"
         app:icon="@android:drawable/ic_menu_save"
         app:iconTint="#FFFFFF"
-        app:backgroundTint="#43A047"/>
+        app:backgroundTint="#43A047"
+        app:elevation="6dp"/>
 
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
@@ -106,7 +202,8 @@
         android:layout_gravity="bottom"
         android:backgroundTint="#FFFFFF"
         app:fabCradleMargin="10dp"
-        app:fabCradleRoundedCornerRadius="20dp">
+        app:fabCradleRoundedCornerRadius="20dp"
+        app:elevation="12dp">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"

@@ -35,10 +35,19 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         InventoryItem item = items.get(position);
+
         holder.name.setText(item.getName());
         holder.qty.setText("Qty: " + item.getQuantity());
 
-        // Traffic Light Logic: Green for adequate, Red for low stock [cite: 38, 48]
+        // THE FIX: Pull the date from the database and set it
+        String dateStr = item.getDateAdded();
+        if (dateStr != null && !dateStr.isEmpty()) {
+            holder.date.setText("Added: " + dateStr);
+        } else {
+            holder.date.setText("Added: Unknown");
+        }
+
+        // Traffic Light Logic: Green for adequate, Red for low stock
         if (item.getQuantity() < item.getMinStock()) {
             holder.statusIndicator.setBackgroundColor(Color.RED);
         } else {
@@ -52,13 +61,14 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     public int getItemCount() { return items.size(); }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name, qty;
+        TextView name, qty, date; // Added the date variable here
         View statusIndicator;
 
         public ViewHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.tvName);
             qty = itemView.findViewById(R.id.tvQty);
+            date = itemView.findViewById(R.id.tvDate); // Linked it to the XML ID here
             statusIndicator = itemView.findViewById(R.id.viewStatus);
         }
     }
