@@ -304,33 +304,45 @@ public class ReportActivity extends AppCompatActivity {
 
     private void setupNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
+        if (bottomNav == null) return;
+
         bottomNav.setBackground(null);
         bottomNav.getMenu().getItem(2).setEnabled(false);
         bottomNav.setSelectedItemId(R.id.nav_report);
 
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            Intent intent = null;
+            if (id == R.id.nav_report) return true; // Already here
 
+            Intent intent = null;
             if (id == R.id.nav_home) {
                 intent = new Intent(this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             } else if (id == R.id.nav_inventory) {
                 intent = new Intent(this, InventoryActivity.class);
+            } else if (id == R.id.nav_profile) {
+                intent = new Intent(this, ProfileActivity.class);
             }
 
             if (intent != null) {
                 intent.putExtra("USER_ROLE", userRole);
                 startActivity(intent);
-                overridePendingTransition(0,0);
+                overridePendingTransition(0, 0);
+                finish(); // Closes the old tab cleanly
                 return true;
             }
-            return id == R.id.nav_report;
+            return false;
         });
 
-        findViewById(R.id.fabAdd).setOnClickListener(v -> {
-            Intent intent = new Intent(this, AddItemActivity.class);
-            intent.putExtra("USER_ROLE", userRole);
-            startActivity(intent);
-        });
+        // Make sure FAB still works
+        View fabAdd = findViewById(R.id.fabAdd);
+        if(fabAdd != null) {
+            fabAdd.setOnClickListener(v -> {
+                Intent intent = new Intent(this, AddItemActivity.class);
+                intent.putExtra("USER_ROLE", userRole);
+                startActivity(intent);
+            });
+        }
     }
+
 }

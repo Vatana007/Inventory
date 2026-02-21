@@ -48,6 +48,7 @@
         <activity android:name=".InventoryActivity" />
         <activity android:name=".ReportActivity" />
         <activity android:name=".HistoryActivity" />
+        <activity android:name=".ProfileActivity" />
     </application>
 
 </manifest>

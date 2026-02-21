@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private ListenerRegistration firestoreListener;
 
-    // UI References for visibility toggling
     private BottomAppBar bottomAppBar;
     private FloatingActionButton fabAdd;
 
@@ -91,8 +90,6 @@ public class MainActivity extends AppCompatActivity {
         setupQuickActions();
         setupBottomNavigation();
         listenForRealTimeUpdates();
-
-        // THE FIX: Keyboard Listener
         setupKeyboardAutoHide();
     }
 
@@ -122,11 +119,9 @@ public class MainActivity extends AppCompatActivity {
             int keypadHeight = screenHeight - r.bottom;
 
             if (keypadHeight > screenHeight * 0.15) {
-                // Keyboard Open
                 if (bottomAppBar != null) bottomAppBar.setVisibility(View.GONE);
                 if (fabAdd != null) fabAdd.hide();
             } else {
-                // Keyboard Closed
                 if (bottomAppBar != null) bottomAppBar.setVisibility(View.VISIBLE);
                 if (fabAdd != null && "Admin".equalsIgnoreCase(userRole)) {
                     fabAdd.show();
@@ -153,17 +148,10 @@ public class MainActivity extends AppCompatActivity {
         ImageView ivProfile = findViewById(R.id.ivProfile);
         if (ivProfile != null) {
             ivProfile.setOnClickListener(v -> {
-                PopupMenu popup = new PopupMenu(MainActivity.this, v);
-                popup.getMenu().add(getString(R.string.msg_role, userRole)).setEnabled(false);
-                popup.getMenu().add(getString(R.string.msg_logout));
-                popup.setOnMenuItemClickListener(item -> {
-                    if (item.getTitle().toString().equals(getString(R.string.msg_logout))) {
-                        handleLogout();
-                        return true;
-                    }
-                    return false;
-                });
-                popup.show();
+                Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                intent.putExtra("USER_ROLE", userRole);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
             });
         }
     }
@@ -224,40 +212,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // THE CLEANED UP NAVIGATION METHOD
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
         if (bottomNav == null) return;
 
+        bottomNav.setBackground(null);
+        bottomNav.getMenu().getItem(2).setEnabled(false); // Disable placeholder
         bottomNav.setSelectedItemId(R.id.nav_home);
-        bottomNav.getMenu().getItem(2).setEnabled(false);
 
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home) return true;
+            if (id == R.id.nav_home) return true; // Already here
 
+            Intent intent = null;
             if (id == R.id.nav_inventory) {
-                Intent intent = new Intent(this, InventoryActivity.class);
-                intent.putExtra("USER_ROLE", userRole);
-                startActivity(intent);
-                overridePendingTransition(0,0);
-                return true;
-            }
-            if (id == R.id.nav_report) {
+                intent = new Intent(this, InventoryActivity.class);
+            } else if (id == R.id.nav_report) {
                 if ("Staff".equalsIgnoreCase(userRole)) {
-                    Toast.makeText(this, "🚫 Admin Access Only", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.msg_access_denied), Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                Intent intent = new Intent(this, ReportActivity.class);
-                intent.putExtra("USER_ROLE", userRole);
-                startActivity(intent);
-                overridePendingTransition(0,0);
-                return true;
+                intent = new Intent(this, ReportActivity.class);
+            } else if (id == R.id.nav_profile) {
+                intent = new Intent(this, ProfileActivity.class);
             }
-            if (id == R.id.nav_history) {
-                Intent intent = new Intent(this, HistoryActivity.class);
+
+            if (intent != null) {
                 intent.putExtra("USER_ROLE", userRole);
                 startActivity(intent);
-                overridePendingTransition(0,0);
+                overridePendingTransition(0, 0);
                 return true;
             }
             return false;
@@ -336,8 +320,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // This forces the "Home" icon to be highlighted whenever we return to the Dashboard
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
+        if (bottomNav != null) {
+            bottomNav.getMenu().findItem(R.id.nav_home).setChecked(true);
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (firestoreListener != null) firestoreListener.remove();
     }
+
 }

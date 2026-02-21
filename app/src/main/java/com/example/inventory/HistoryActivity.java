@@ -159,7 +159,7 @@ public class HistoryActivity extends AppCompatActivity {
         if (bottomNav != null) {
             bottomNav.setBackground(null);
             bottomNav.getMenu().getItem(2).setEnabled(false);
-            bottomNav.setSelectedItemId(R.id.nav_history);
+            bottomNav.setSelectedItemId(R.id.nav_profile);
 
             bottomNav.setOnItemSelectedListener(item -> {
                 int id = item.getItemId();
@@ -179,7 +179,7 @@ public class HistoryActivity extends AppCompatActivity {
                     overridePendingTransition(0, 0); // <--- THIS REMOVES THE SLIDE ANIMATION
                     return true;
                 }
-                return id == R.id.nav_history;
+                return id == R.id.nav_profile;
             });
         }
     }

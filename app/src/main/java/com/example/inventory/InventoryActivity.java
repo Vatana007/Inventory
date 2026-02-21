@@ -169,36 +169,41 @@ public class InventoryActivity extends AppCompatActivity {
 
     private void setupNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
-        if (bottomNav != null) {
-            bottomNav.setBackground(null);
-            bottomNav.getMenu().getItem(2).setEnabled(false);
-            bottomNav.setSelectedItemId(R.id.nav_inventory);
+        if (bottomNav == null) return;
 
-            bottomNav.setOnItemSelectedListener(item -> {
-                int id = item.getItemId();
+        bottomNav.setBackground(null);
+        bottomNav.getMenu().getItem(2).setEnabled(false);
+        bottomNav.setSelectedItemId(R.id.nav_inventory);
 
-                if (id == R.id.nav_home) {
-                    Intent intent = new Intent(this, MainActivity.class);
-                    intent.putExtra("USER_ROLE", userRole);
-                    startActivity(intent);
-                    overridePendingTransition(0,0);
-                    return true;
-                } else if (id == R.id.nav_report) {
-                    if (userRole.equalsIgnoreCase("Staff")) {
-                        // FIX: Use strings.xml
-                        Toast.makeText(this, getString(R.string.msg_access_denied), Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
-                    Intent intent = new Intent(this, ReportActivity.class);
-                    intent.putExtra("USER_ROLE", userRole);
-                    startActivity(intent);
-                    overridePendingTransition(0,0);
-                    return true;
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_inventory) return true; // Already here
+
+            Intent intent = null;
+            if (id == R.id.nav_home) {
+                intent = new Intent(this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            } else if (id == R.id.nav_report) {
+                if ("Staff".equalsIgnoreCase(userRole)) {
+                    Toast.makeText(this, getString(R.string.msg_access_denied), Toast.LENGTH_SHORT).show();
+                    return false;
                 }
-                return id == R.id.nav_inventory;
-            });
-        }
+                intent = new Intent(this, ReportActivity.class);
+            } else if (id == R.id.nav_profile) {
+                intent = new Intent(this, ProfileActivity.class);
+            }
+
+            if (intent != null) {
+                intent.putExtra("USER_ROLE", userRole);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                finish(); // Closes the old tab cleanly
+                return true;
+            }
+            return false;
+        });
     }
+
 
     private void loadInventoryRealTime() {
         firestoreListener = db.collection("inventory").addSnapshotListener((snapshots, e) -> {
