@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Inventify</string>
+    <string name="app_name">Inventory</string>
     <string name="app_subtitle">Professional Inventory Management</string>
 
     <!-- ROLES & TITLES -->
@@ -83,7 +83,7 @@
 
     <string name="tab_all_items">All Items</string>
     <string name="tab_in_stock">In Stock</string>
-    <string name="tab_out_of_stock">Out of Stock</string>
+    <string name="tab_out_of_stock">Low Stock</string>
     <string name="label_select_date">Select Date</string>
     <string name="msg_showing_all_logs">Showing all %1$d logs</string>
     <string name="msg_found_records">Found %1$d records</string>

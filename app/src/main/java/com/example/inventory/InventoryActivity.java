@@ -236,9 +236,15 @@ public class InventoryActivity extends AppCompatActivity {
         for (InventoryItem item : fullItemList) {
             boolean matchesTab = false;
 
-            if (currentTab == 0) matchesTab = true;
-            else if (currentTab == 1) matchesTab = (item.getQuantity() > 0);
-            else if (currentTab == 2) matchesTab = (item.getQuantity() <= 0);
+            // --- THE NEW TAB LOGIC ---
+            if (currentTab == 0) {
+                matchesTab = true; // Tab 1: All Items
+            } else if (currentTab == 1) {
+                matchesTab = (item.getQuantity() > 0); // Tab 2: In Stock
+            } else if (currentTab == 2) {
+                // Tab 3: LOW STOCK (Checks against the Min Stock threshold)
+                matchesTab = (item.getQuantity() < item.getMinStock());
+            }
 
             boolean matchesSearch = true;
             if (!searchQuery.isEmpty()) {

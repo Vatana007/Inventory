@@ -8,7 +8,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.inventory.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -43,9 +45,9 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
-        String name = etName.getText().toString();
-        String email = etEmail.getText().toString();
-        String password = etPassword.getText().toString();
+        String name = etName.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
         String role = spinnerRole.getSelectedItem().toString();
 
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
@@ -55,13 +57,17 @@ public class RegisterActivity extends AppCompatActivity {
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    // Save extra user details to Firestore
-                    User user = new User(name, email, role);
-                    db.collection("users").document(authResult.getUser().getUid())
-                            .set(user)
+
+                    // ALL users are set to pending now. No auto-approval.
+                    User user = new User(name, email, role, "pending");
+
+                    db.collection("users").document(authResult.getUser().getUid()).set(user)
                             .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(this, getString(R.string.msg_account_created), Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(this, MainActivity.class));
+                                mAuth.signOut(); // FORCE LOGOUT so they can't bypass approval
+
+                                Toast.makeText(this, "Registration successful! Please wait for Admin approval.", Toast.LENGTH_LONG).show();
+
+                                startActivity(new Intent(this, LoginActivity.class));
                                 finish();
                             });
                 })

@@ -3,6 +3,7 @@ package com.example.inventory;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap; // NEW IMPORT
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -20,26 +21,35 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.inventory.model.Transaction;
-import com.example.inventory.model.Batch; // IMPORT BATCH
-import com.example.inventory.db.LocalDatabaseHelper; // IMPORT SQLITE HELPER
+import com.example.inventory.model.Batch;
+import com.example.inventory.db.LocalDatabaseHelper;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
+// NEW ZXING IMPORTS
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
+
 public class ItemDetailActivity extends AppCompatActivity {
 
+    // UI Components
     private TextView tvName, tvPrice;
+    private TextView tvDetailCategory, tvDetailDate, tvDetailMinStock, tvDetailBarcode;
+    private ImageView ivDetailBarcodeImage; // NEW VIEW FOR BARCODE IMAGE
     private EditText etDetailQty;
-    private Button btnStockIn, btnStockOut, btnEdit, btnDelete;
+    private View btnStockIn, btnStockOut, btnEdit, btnDelete;
     private ImageView btnBack;
     private LinearLayout layoutAdminActions;
 
+    // Database & Listeners
     private FirebaseFirestore db;
-    private LocalDatabaseHelper localDb; // SQLITE
+    private LocalDatabaseHelper localDb;
     private ListenerRegistration itemListener;
 
+    // Item Data
     private String itemId, itemName;
     private int currentQty;
     private String userRole = "Staff";
@@ -57,7 +67,7 @@ public class ItemDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_item_detail);
 
         db = FirebaseFirestore.getInstance();
-        localDb = new LocalDatabaseHelper(this); // INIT SQLITE
+        localDb = new LocalDatabaseHelper(this);
 
         if (getIntent() != null) {
             itemId = getIntent().getStringExtra("itemId");
@@ -80,6 +90,12 @@ public class ItemDetailActivity extends AppCompatActivity {
         tvName = findViewById(R.id.tvDetailName);
         tvPrice = findViewById(R.id.tvDetailPrice);
         etDetailQty = findViewById(R.id.etDetailQty);
+
+        tvDetailCategory = findViewById(R.id.tvDetailCategory);
+        tvDetailDate = findViewById(R.id.tvDetailDate);
+        tvDetailMinStock = findViewById(R.id.tvDetailMinStock);
+        tvDetailBarcode = findViewById(R.id.tvDetailBarcode);
+        ivDetailBarcodeImage = findViewById(R.id.ivDetailBarcodeImage); // BIND BARCODE IMAGE
 
         btnStockIn = findViewById(R.id.btnStockIn);
         btnStockOut = findViewById(R.id.btnStockOut);
@@ -178,13 +194,50 @@ public class ItemDetailActivity extends AppCompatActivity {
                     currentDateAdded = snapshot.getString("dateAdded");
                     currentBarcode = snapshot.getString("barcode");
 
+                    // UPDATE THE UI
                     if (itemName != null) tvName.setText(itemName);
                     tvPrice.setText("$" + String.format("%.2f", price));
+
+                    if (tvDetailCategory != null) {
+                        tvDetailCategory.setText(TextUtils.isEmpty(currentCategory) ? "Uncategorized" : currentCategory);
+                    }
+                    if (tvDetailDate != null) {
+                        tvDetailDate.setText(TextUtils.isEmpty(currentDateAdded) ? "N/A" : currentDateAdded);
+                    }
+                    if (tvDetailMinStock != null) {
+                        tvDetailMinStock.setText(String.valueOf(currentMinStock));
+                    }
+                    if (tvDetailBarcode != null) {
+                        tvDetailBarcode.setText(TextUtils.isEmpty(currentBarcode) ? "N/A" : currentBarcode);
+                    }
+
+                    // NEW: GENERATE AND DISPLAY THE BARCODE IMAGE
+                    generateAndDisplayBarcode(currentBarcode);
 
                     if (!etDetailQty.hasFocus()) {
                         etDetailQty.setText(String.valueOf(currentQty));
                     }
                 });
+    }
+
+    // NEW METHOD: Converts the string into a Barcode image
+    private void generateAndDisplayBarcode(String barcodeText) {
+        if (TextUtils.isEmpty(barcodeText)) {
+            ivDetailBarcodeImage.setVisibility(View.GONE);
+            return;
+        }
+
+        try {
+            BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+            // Encode the text into a CODE_128 Barcode
+            Bitmap bitmap = barcodeEncoder.encodeBitmap(barcodeText, BarcodeFormat.CODE_128, 600, 200);
+
+            ivDetailBarcodeImage.setImageBitmap(bitmap);
+            ivDetailBarcodeImage.setVisibility(View.VISIBLE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ivDetailBarcodeImage.setVisibility(View.GONE);
+        }
     }
 
     /**
@@ -253,11 +306,10 @@ public class ItemDetailActivity extends AppCompatActivity {
         db.collection("inventory").document(itemId).collection("batches").add(newBatch);
     }
 
-    // --- FIFO HELPER: FIX APPLIED HERE ---
+    // --- FIFO HELPER ---
     private void processFifoStockOut(int qtyNeededInput) {
         if (qtyNeededInput <= 0) return;
 
-        // FIX: Wrap the integer in an array so it can be modified inside the listener
         final int[] neededWrapper = {qtyNeededInput};
 
         db.collection("inventory").document(itemId).collection("batches")
@@ -269,19 +321,15 @@ public class ItemDetailActivity extends AppCompatActivity {
                         int remaining = (rQty != null) ? rQty.intValue() : 0;
 
                         if (remaining > 0) {
-                            // Use array index 0 to access the variable
                             if (remaining >= neededWrapper[0]) {
-                                // Satisfied fully by this batch
                                 doc.getReference().update("remainingQty", remaining - neededWrapper[0]);
                                 neededWrapper[0] = 0;
                                 return;
                             } else {
-                                // Use all of this batch and continue
                                 doc.getReference().update("remainingQty", 0);
                                 neededWrapper[0] -= remaining;
                             }
                         }
-                        // Stop loop if we found enough stock
                         if (neededWrapper[0] <= 0) break;
                     }
                 });

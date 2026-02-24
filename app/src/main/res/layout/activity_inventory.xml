@@ -82,9 +82,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:padding="12dp"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="10dp"
         android:clipToPadding="false"
-        android:paddingBottom="100dp"/>
+        android:paddingBottom="95dp"/>
+    <!-- paddingBottom bumped to 120dp to give the Floating Action Button breathing room -->
+
 
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"

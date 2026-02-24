@@ -19,12 +19,14 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileActivity extends AppCompatActivity {
 
     private TextView tvUserName, tvUserEmail, tvUserRole;
-    private LinearLayout btnEditName, btnChangePassword, btnHelp;
+    private LinearLayout btnEditName, btnChangePassword, btnHelp, btnApproveUsers;
+    private View dividerApprove;
     private MaterialCardView cardLogout;
 
     private FirebaseAuth mAuth;
@@ -46,6 +48,8 @@ public class ProfileActivity extends AppCompatActivity {
         tvUserRole = findViewById(R.id.tvUserRole);
 
         btnEditName = findViewById(R.id.btnEditName);
+        btnApproveUsers = findViewById(R.id.btnApproveUsers);
+        dividerApprove = findViewById(R.id.dividerApprove);
         btnChangePassword = findViewById(R.id.btnChangePassword);
         btnHelp = findViewById(R.id.btnHelp);
         cardLogout = findViewById(R.id.cardLogout);
@@ -54,6 +58,12 @@ public class ProfileActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         userRole = prefs.getString("USER_ROLE", "Staff");
         tvUserRole.setText("Role: " + userRole);
+
+        // Show approval button ONLY to Admins
+        if ("Admin".equalsIgnoreCase(userRole)) {
+            btnApproveUsers.setVisibility(View.VISIBLE);
+            dividerApprove.setVisibility(View.VISIBLE);
+        }
 
         loadUserInfo();
         setupClickListeners();
@@ -75,16 +85,10 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        // 1. EDIT PROFILE NAME
         btnEditName.setOnClickListener(v -> showEditNameDialog());
-
-        // 2. CHANGE PASSWORD
+        btnApproveUsers.setOnClickListener(v -> showApprovalDialog());
         btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
-
-        // 3. HELP & SUPPORT
         btnHelp.setOnClickListener(v -> showHelpDialog());
-
-        // 4. LOGOUT
         cardLogout.setOnClickListener(v -> handleLogout());
     }
 
@@ -92,14 +96,12 @@ public class ProfileActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Edit Profile Name");
 
-        // Set up the input field
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         input.setText(currentName);
         input.setHint("Enter new name");
         builder.setView(input);
 
-        // Set up the buttons
         builder.setPositiveButton("Save", (dialog, which) -> {
             String newName = input.getText().toString().trim();
             if (!TextUtils.isEmpty(newName)) {
@@ -124,6 +126,49 @@ public class ProfileActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> Toast.makeText(this, "Failed to update name", Toast.LENGTH_SHORT).show());
         }
+    }
+
+    private void showApprovalDialog() {
+        db.collection("users").whereEqualTo("status", "pending").get().addOnSuccessListener(snapshots -> {
+            if (snapshots.isEmpty()) {
+                Toast.makeText(this, "No pending users waiting for approval.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            java.util.List<DocumentSnapshot> pendingUsers = snapshots.getDocuments();
+            String[] names = new String[pendingUsers.size()];
+            for (int i = 0; i < pendingUsers.size(); i++) {
+                names[i] = pendingUsers.get(i).getString("name") + " (" + pendingUsers.get(i).getString("role") + ")";
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Approve Pending Users")
+                    .setItems(names, (dialog, which) -> {
+                        DocumentSnapshot selectedUser = pendingUsers.get(which);
+
+                        // NEW LOGIC: Pass to the Approve/Reject Dialog
+                        manageUserApproval(selectedUser.getId(), selectedUser.getString("name"));
+                    })
+                    .setNegativeButton("Close", null)
+                    .show();
+        });
+    }
+
+    // NEW LOGIC: Gives the Admin the choice to Approve OR Reject
+    private void manageUserApproval(String uid, String name) {
+        new AlertDialog.Builder(this)
+                .setTitle("Manage User")
+                .setMessage("Do you want to Approve or Reject " + name + "?")
+                .setPositiveButton("Approve", (dialog, which) -> {
+                    db.collection("users").document(uid).update("status", "approved")
+                            .addOnSuccessListener(aVoid -> Toast.makeText(this, name + " has been approved!", Toast.LENGTH_SHORT).show());
+                })
+                .setNegativeButton("Reject", (dialog, which) -> {
+                    db.collection("users").document(uid).update("status", "rejected")
+                            .addOnSuccessListener(aVoid -> Toast.makeText(this, name + " has been rejected!", Toast.LENGTH_SHORT).show());
+                })
+                .setNeutralButton("Cancel", null)
+                .show();
     }
 
     private void showChangePasswordDialog() {

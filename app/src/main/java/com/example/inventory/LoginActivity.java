@@ -33,11 +33,9 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Bind Views
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
@@ -53,12 +51,10 @@ public class LoginActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (TextUtils.isEmpty(email)) {
-            // FIX: Uses string resource
             etEmail.setError(getString(R.string.err_email_required));
             return;
         }
         if (TextUtils.isEmpty(password)) {
-            // FIX: Uses string resource
             etPassword.setError(getString(R.string.err_password_required));
             return;
         }
@@ -69,14 +65,12 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Success: Fetch the role from Firestore
                         if (mAuth.getCurrentUser() != null) {
                             checkUserRole(mAuth.getCurrentUser().getUid());
                         }
                     } else {
                         progressBar.setVisibility(View.GONE);
                         btnLogin.setEnabled(true);
-                        // FIX: Uses string resource with formatting for the error message
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown Error";
                         Toast.makeText(LoginActivity.this, getString(R.string.msg_error_prefix, errorMsg), Toast.LENGTH_LONG).show();
                     }
@@ -86,33 +80,42 @@ public class LoginActivity extends AppCompatActivity {
     private void checkUserRole(String uid) {
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    String role = "Staff"; // Default to safest role
-
                     if (documentSnapshot.exists()) {
-                        role = documentSnapshot.getString("role");
+                        String status = documentSnapshot.getString("status");
+
+                        // BLOCK PENDING OR REJECTED USERS
+                        if ("pending".equalsIgnoreCase(status)) {
+                            mAuth.signOut();
+                            progressBar.setVisibility(View.GONE);
+                            btnLogin.setEnabled(true);
+                            Toast.makeText(this, "Your account is still pending Admin approval.", Toast.LENGTH_LONG).show();
+                            return;
+                        } else if ("rejected".equalsIgnoreCase(status)) {
+                            mAuth.signOut();
+                            progressBar.setVisibility(View.GONE);
+                            btnLogin.setEnabled(true);
+                            Toast.makeText(this, "Your account registration was rejected by Admin.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        String role = documentSnapshot.getString("role");
                         if (role == null) role = "Staff";
+
+                        SharedPreferences prefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                        prefs.edit().putString("USER_ROLE", role).apply();
+
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        intent.putExtra("USER_ROLE", role);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                        progressBar.setVisibility(View.GONE);
+                        startActivity(intent);
+                        finish();
                     }
-
-                    // --- THE REINFORCEMENT FIX ---
-                    // 1. Save to SharedPreferences (Permanent storage on phone)
-                    SharedPreferences prefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
-                    prefs.edit().putString("USER_ROLE", role).apply();
-
-                    // 2. Pass to Intent (Immediate delivery)
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    intent.putExtra("USER_ROLE", role);
-
-                    // Clear activity stack so user can't go "back" into login
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                    progressBar.setVisibility(View.GONE);
-                    startActivity(intent);
-                    finish();
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
                     btnLogin.setEnabled(true);
-                    // FIX: Uses string resource
                     Toast.makeText(this, getString(R.string.err_verify_role, e.getMessage()), Toast.LENGTH_SHORT).show();
                 });
     }
@@ -120,7 +123,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // If the user opens the login screen but Firebase says they are active
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);

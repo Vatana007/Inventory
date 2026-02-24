@@ -3,6 +3,7 @@ package com.example.inventory;
 import android.app.DatePickerDialog;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -27,6 +28,8 @@ import com.example.inventory.model.InventoryItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -214,47 +217,119 @@ public class ReportActivity extends AppCompatActivity {
 
     private void generateBulkPDF() {
         PdfDocument document = new PdfDocument();
-        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
+        int pageNumber = 1;
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, pageNumber).create();
         PdfDocument.Page page = document.startPage(pageInfo);
         Canvas canvas = page.getCanvas();
         Paint paint = new Paint();
 
-        paint.setColor(Color.BLACK);
-        paint.setTextSize(20);
+        int y = drawReportPdfHeader(canvas, paint, pageNumber);
+
+        double totalValue = 0;
+        int rowCount = 0;
+
+        for (InventoryItem item : filteredList) {
+
+            // Check if we reached the bottom (Leaving room for the footer)
+            if (y > 740) {
+                document.finishPage(page);
+                pageNumber++;
+                pageInfo = new PdfDocument.PageInfo.Builder(595, 842, pageNumber).create();
+                page = document.startPage(pageInfo);
+                canvas = page.getCanvas();
+                y = drawReportPdfHeader(canvas, paint, pageNumber);
+            }
+
+            if (rowCount % 2 != 0) {
+                paint.setColor(Color.rgb(250, 250, 250));
+                canvas.drawRect(50, y - 35, 545, y + 35, paint);
+            }
+
+            paint.setColor(Color.BLACK);
+            paint.setTextSize(14);
+            paint.setFakeBoldText(true);
+            canvas.drawText(item.getName(), 60, y - 5, paint);
+
+            paint.setTextSize(10);
+            paint.setColor(Color.GRAY);
+            paint.setFakeBoldText(false);
+            String bText = (item.getBarcode() != null && !item.getBarcode().isEmpty()) ? item.getBarcode() : "N/A";
+            canvas.drawText("SN: " + bText, 60, y + 12, paint);
+
+            paint.setTextSize(14);
+            paint.setColor(Color.BLACK);
+            canvas.drawText(String.valueOf(item.getQuantity()), 230, y, paint);
+            canvas.drawText("$" + String.format("%.2f", item.getPrice()), 280, y, paint);
+
+            double lineTotal = item.getPrice() * item.getQuantity();
+            paint.setColor(Color.rgb(56, 142, 60)); // Green
+            paint.setFakeBoldText(true);
+            canvas.drawText("$" + String.format("%.2f", lineTotal), 350, y, paint);
+            paint.setFakeBoldText(false);
+
+            if (!bText.equals("N/A")) {
+                try {
+                    BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+                    Bitmap bitmap = barcodeEncoder.encodeBitmap(bText, BarcodeFormat.CODE_128, 90, 35);
+                    canvas.drawBitmap(bitmap, 440, y - 20, null);
+                } catch (Exception e) { e.printStackTrace(); }
+            } else {
+                paint.setColor(Color.LTGRAY);
+                paint.setTextSize(10);
+                canvas.drawText("NO BARCODE", 445, y, paint);
+            }
+
+            y += 70;
+            totalValue += lineTotal;
+            rowCount++;
+        }
+
+        // Draw Footer Total Block at the very end
+        paint.setColor(Color.rgb(98, 0, 238));
+        canvas.drawRect(50, y - 10, 545, y + 35, paint);
+
+        paint.setColor(Color.WHITE);
+        paint.setFakeBoldText(true);
+        paint.setTextSize(16);
+        canvas.drawText("TOTAL INVENTORY VALUE:", 150, y + 15, paint);
+        canvas.drawText("$" + String.format("%.2f", totalValue), 350, y + 15, paint);
+
+        document.finishPage(page);
+
+        // Save Logic
+        String safeName = (startDate != null) ? "Filtered_Range" : "Full_Report";
+        String fileName = "Inventify_" + safeName + "_" + System.currentTimeMillis() + ".pdf";
+        saveFile(document, fileName, "application/pdf");
+    }
+
+    private int drawReportPdfHeader(Canvas canvas, Paint paint, int pageNumber) {
+        paint.setColor(Color.rgb(98, 0, 238));
+        canvas.drawRect(0, 0, 595, 130, paint);
+
+        paint.setColor(Color.WHITE);
+        paint.setTextSize(24);
         paint.setFakeBoldText(true);
         canvas.drawText(getDynamicReportTitle(), 50, 60, paint);
 
         paint.setTextSize(14);
         paint.setFakeBoldText(false);
-        paint.setColor(Color.DKGRAY);
-        canvas.drawText("Generated by Inventify App", 50, 85, paint);
+        paint.setColor(Color.rgb(224, 224, 224));
+        canvas.drawText("Inventify Full System Report - Page " + pageNumber, 50, 95, paint);
 
-        paint.setColor(Color.LTGRAY);
-        paint.setStrokeWidth(2);
-        canvas.drawLine(50, 100, 545, 100, paint);
+        int y = 170;
+        paint.setColor(Color.rgb(240, 240, 240));
+        canvas.drawRect(50, y - 25, 545, y + 15, paint);
 
         paint.setColor(Color.BLACK);
-        paint.setTextSize(14);
-        int y = 140;
-        double totalValue = 0;
-
-        for (InventoryItem item : filteredList) {
-            String line = item.getName() + "  |  Qty: " + item.getQuantity() + "  |  $" + item.getPrice();
-            canvas.drawText(line, 50, y, paint);
-            y += 40;
-            totalValue += (item.getPrice() * item.getQuantity());
-            if (y > 780) break;
-        }
-
+        paint.setTextSize(12);
         paint.setFakeBoldText(true);
-        canvas.drawLine(50, y + 10, 545, y + 10, paint);
-        canvas.drawText("TOTAL VALUE: $" + String.format("%.2f", totalValue), 50, y + 40, paint);
+        canvas.drawText("Product", 60, y, paint);
+        canvas.drawText("Qty", 230, y, paint);
+        canvas.drawText("Price", 280, y, paint);
+        canvas.drawText("Total Asset", 350, y, paint);
+        canvas.drawText("Barcode", 450, y, paint);
 
-        document.finishPage(page);
-
-        String safeName = (startDate != null) ? "Filtered_Range" : "Full_Report";
-        String fileName = "Inventify_" + safeName + "_" + System.currentTimeMillis() + ".pdf";
-        saveFile(document, fileName, "application/pdf");
+        return y + 45; // Start Y for rows
     }
 
     private void generateCSV() {

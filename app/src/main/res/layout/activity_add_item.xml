@@ -93,7 +93,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="16dp"
                 android:baselineAligned="false">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -124,6 +124,29 @@
                         android:inputType="numberDecimal"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
+
+            <!-- NEW: BARCODE INPUT -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Barcode Number (Optional)"
+                android:layout_marginBottom="16dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etBarcode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- NEW: BARCODE IMAGE PREVIEW -->
+            <ImageView
+                android:id="@+id/ivBarcodePreview"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginBottom="32dp"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/btnSave"

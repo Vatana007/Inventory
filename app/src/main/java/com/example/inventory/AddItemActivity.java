@@ -1,11 +1,18 @@
 package com.example.inventory;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import android.graphics.Bitmap;
+import android.text.Editable;
+import android.text.TextWatcher;
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
+
 
 import com.example.inventory.model.InventoryItem;
 import com.example.inventory.model.Batch; // IMPORT BATCH MODEL
@@ -19,7 +26,8 @@ import java.util.Locale;
 
 public class AddItemActivity extends AppCompatActivity {
 
-    private TextInputEditText etName, etCategory, etQty, etPrice, etSale;
+    private TextInputEditText etName, etCategory, etQty, etPrice, etSale, etBarcode;
+    private ImageView ivBarcodePreview;
     private FirebaseFirestore db;
     private LocalDatabaseHelper localDb; // SQLITE
 
@@ -27,6 +35,27 @@ public class AddItemActivity extends AppCompatActivity {
     private String originalDate = null;
     private String originalBarcode = "";
     private int currentMinStock = 5;
+
+    private void generateBarcode(String text) {
+        if (text.isEmpty()) {
+            ivBarcodePreview.setVisibility(View.GONE);
+            ivBarcodePreview.setImageBitmap(null);
+            return;
+        }
+
+        try {
+            BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+            // Encode the text into a CODE_128 Barcode (Standard retail barcode)
+            Bitmap bitmap = barcodeEncoder.encodeBitmap(text, BarcodeFormat.CODE_128, 600, 200);
+
+            ivBarcodePreview.setImageBitmap(bitmap);
+            ivBarcodePreview.setVisibility(View.VISIBLE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ivBarcodePreview.setVisibility(View.GONE);
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +70,21 @@ public class AddItemActivity extends AppCompatActivity {
         etQty = findViewById(R.id.etQty);
         etPrice = findViewById(R.id.etPrice);
         etSale = findViewById(R.id.etSale);
+        etBarcode = findViewById(R.id.etBarcode);
+        ivBarcodePreview = findViewById(R.id.ivBarcodePreview);
+
+        etBarcode.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                generateBarcode(s.toString().trim());
+            }
+        });
 
         Button btnSave = findViewById(R.id.btnSave);
         ImageView btnBack = findViewById(R.id.btnBack);
@@ -76,6 +120,7 @@ public class AddItemActivity extends AppCompatActivity {
             }
             if(getIntent().hasExtra("barcode")){
                 originalBarcode = getIntent().getStringExtra("barcode");
+                etBarcode.setText(originalBarcode); // This will automatically trigger the image generation!
             }
         } else {
             if(tvTitle != null) tvTitle.setText(getString(R.string.title_add_product));
@@ -108,7 +153,8 @@ public class AddItemActivity extends AppCompatActivity {
             dateToSave = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(new Date());
         }
 
-        InventoryItem item = new InventoryItem(name, qty, price, sale, category, currentMinStock, dateToSave, originalBarcode);
+        String finalBarcode = etBarcode.getText().toString().trim();
+        InventoryItem item = new InventoryItem(name, qty, price, sale, category, currentMinStock, dateToSave, finalBarcode);
 
         // CASE 1: UPDATE EXISTING
         if (existingItemId != null) {

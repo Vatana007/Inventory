@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="#F0F2F5">
 
-    <!-- Profile Header -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -64,7 +63,6 @@
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -80,7 +78,6 @@
             android:paddingHorizontal="20dp"
             android:paddingBottom="40dp">
 
-            <!-- NEW FUNCTIONAL OPTIONS CARD -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -107,7 +104,6 @@
                         android:layout_marginStart="16dp"
                         android:layout_marginBottom="8dp"/>
 
-                    <!-- Edit Name Row -->
                     <LinearLayout
                         android:id="@+id/btnEditName"
                         android:layout_width="match_parent"
@@ -137,7 +133,36 @@
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F2F5"/>
 
-                    <!-- Change Password Row -->
+                    <LinearLayout
+                        android:id="@+id/btnApproveUsers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="16dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_add"
+                            app:tint="#546E7A"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Approve New Users"
+                            android:textColor="#263238"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="16dp"/>
+                    </LinearLayout>
+
+                    <View android:id="@+id/dividerApprove" android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F2F5" android:visibility="gone"/>
+
                     <LinearLayout
                         android:id="@+id/btnChangePassword"
                         android:layout_width="match_parent"
@@ -167,7 +192,6 @@
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F2F5"/>
 
-                    <!-- Help Row -->
                     <LinearLayout
                         android:id="@+id/btnHelp"
                         android:layout_width="match_parent"
@@ -197,7 +221,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Logout Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardLogout"
                 android:layout_width="match_parent"
@@ -235,7 +258,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
