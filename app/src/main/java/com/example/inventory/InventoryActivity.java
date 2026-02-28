@@ -81,7 +81,6 @@ public class InventoryActivity extends AppCompatActivity {
 
     private void applyRoleSecurity() {
         if (tvAppTitle != null) {
-            // FIX: Use strings.xml
             if (userRole.equalsIgnoreCase("Admin")) {
                 tvAppTitle.setText(getString(R.string.title_admin_inventory));
             } else {
@@ -90,7 +89,8 @@ public class InventoryActivity extends AppCompatActivity {
         }
 
         if (fabAdd != null) {
-            fabAdd.setVisibility(userRole.equalsIgnoreCase("Admin") ? View.VISIBLE : View.GONE);
+            // Enable Add button for all users (Admin and Staff)
+            fabAdd.setVisibility(View.VISIBLE);
             fabAdd.setOnClickListener(v -> {
                 Intent intent = new Intent(this, AddItemActivity.class);
                 intent.putExtra("USER_ROLE", userRole);
@@ -238,12 +238,13 @@ public class InventoryActivity extends AppCompatActivity {
 
             // --- THE NEW TAB LOGIC ---
             if (currentTab == 0) {
-                matchesTab = true; // Tab 1: All Items
+                matchesTab = true; // Tab 1: All Items (Shows everything, including 0 stock)
             } else if (currentTab == 1) {
-                matchesTab = (item.getQuantity() > 0); // Tab 2: In Stock
+                // Tab 2: IN STOCK (Strictly greater than 5)
+                matchesTab = (item.getQuantity() > 5);
             } else if (currentTab == 2) {
-                // Tab 3: LOW STOCK (Checks against the Min Stock threshold)
-                matchesTab = (item.getQuantity() < item.getMinStock());
+                // Tab 3: LOW STOCK (Greater than 0, AND 5 or less)
+                matchesTab = (item.getQuantity() > 0 && item.getQuantity() <= 5);
             }
 
             boolean matchesSearch = true;

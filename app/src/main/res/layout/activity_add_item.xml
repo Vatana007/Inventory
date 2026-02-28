@@ -125,19 +125,27 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <!-- NEW: BARCODE INPUT -->
+            <!-- NEW: BARCODE INPUT (LOCKED) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Barcode Number (Optional)"
+                android:hint="System Generated Barcode"
                 android:layout_marginBottom="16dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etBarcode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number" />
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:cursorVisible="false"
+                    android:longClickable="false"
+                    android:inputType="none"
+                    android:textColor="#757575" />
+
             </com.google.android.material.textfield.TextInputLayout>
+
 
             <!-- NEW: BARCODE IMAGE PREVIEW -->
             <ImageView

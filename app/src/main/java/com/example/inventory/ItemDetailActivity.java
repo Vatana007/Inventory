@@ -108,8 +108,16 @@ public class ItemDetailActivity extends AppCompatActivity {
     private void checkPermissions() {
         if ("Admin".equalsIgnoreCase(userRole)) {
             layoutAdminActions.setVisibility(View.VISIBLE);
+            // Admin can use stock buttons
+            btnStockIn.setVisibility(View.VISIBLE);
+            btnStockOut.setVisibility(View.VISIBLE);
+            etDetailQty.setEnabled(true);
         } else {
             layoutAdminActions.setVisibility(View.GONE);
+            // Hide stock buttons and disable typing for Staff
+            btnStockIn.setVisibility(View.GONE);
+            btnStockOut.setVisibility(View.GONE);
+            etDetailQty.setEnabled(false); // Prevents opening the keyboard
         }
     }
 
@@ -349,7 +357,14 @@ public class ItemDetailActivity extends AppCompatActivity {
                 .setPositiveButton(getString(R.string.dialog_btn_delete), (dialog, which) -> {
                     db.collection("inventory").document(itemId).delete()
                             .addOnSuccessListener(aVoid -> {
+                                // SQLITE LOG
                                 localDb.logAction("DELETE", itemName);
+
+                                // ---> NEW: FIREBASE HISTORY LOG FOR DELETING PRODUCT <---
+                                // We use "OUT" so it shows up in Red, and we log the quantity that was deleted
+                                Transaction deleteLog = new Transaction("Deleted: " + itemName, "OUT", currentQty);
+                                db.collection("transactions").add(deleteLog);
+
                                 Toast.makeText(this, getString(R.string.msg_product_deleted), Toast.LENGTH_SHORT).show();
                                 finish();
                             });
@@ -357,6 +372,7 @@ public class ItemDetailActivity extends AppCompatActivity {
                 .setNegativeButton(getString(R.string.dialog_btn_cancel), null)
                 .show();
     }
+
 
     @Override
     protected void onDestroy() {

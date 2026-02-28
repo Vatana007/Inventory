@@ -99,16 +99,27 @@ public class MainActivity extends AppCompatActivity {
         View statsContainer = findViewById(R.id.statsContainer);
 
         if ("Staff".equalsIgnoreCase(userRole)) {
-            if (fabAdd != null) fabAdd.setVisibility(View.GONE);
-            if (btnQuickAdd != null) btnQuickAdd.setVisibility(View.GONE);
-            if (btnQuickReport != null) btnQuickReport.setVisibility(View.GONE);
-        } else {
+            // 1. Staff CAN see Add buttons
             if (fabAdd != null) fabAdd.setVisibility(View.VISIBLE);
             if (btnQuickAdd != null) btnQuickAdd.setVisibility(View.VISIBLE);
-            if (btnQuickReport != null) btnQuickReport.setVisibility(View.VISIBLE);
+
+            // 2. HIDE Quick Report completely (Button + Text) for Staff
+            if (btnQuickReport != null) {
+                ((View) btnQuickReport.getParent()).setVisibility(View.GONE);
+            }
+
+        } else {
+            // Admin sees everything
+            if (fabAdd != null) fabAdd.setVisibility(View.VISIBLE);
+            if (btnQuickAdd != null) btnQuickAdd.setVisibility(View.VISIBLE);
             if (statsContainer != null) statsContainer.setVisibility(View.VISIBLE);
+
+            if (btnQuickReport != null) {
+                ((View) btnQuickReport.getParent()).setVisibility(View.VISIBLE);
+            }
         }
     }
+
 
     private void setupKeyboardAutoHide() {
         final View rootView = findViewById(android.R.id.content);
@@ -123,13 +134,13 @@ public class MainActivity extends AppCompatActivity {
                 if (fabAdd != null) fabAdd.hide();
             } else {
                 if (bottomAppBar != null) bottomAppBar.setVisibility(View.VISIBLE);
-                if (fabAdd != null && "Admin".equalsIgnoreCase(userRole)) {
+                // Removed the Admin check here so it shows for Staff too
+                if (fabAdd != null) {
                     fabAdd.show();
                 }
             }
         });
     }
-
     private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override

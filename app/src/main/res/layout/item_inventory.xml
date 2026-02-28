@@ -34,6 +34,19 @@
             app:layout_constraintStart_toStartOf="@id/iconBg"
             app:layout_constraintEnd_toEndOf="@id/iconBg"/>
 
+        <!-- NEW: Price Text on the Right Side -->
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="$0.00"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#4CAF50"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toStartOf="@id/viewStatus"
+            app:layout_constraintTop_toTopOf="parent"/>
+
         <TextView
             android:id="@+id/tvName"
             tools:text="Product Name"
@@ -43,9 +56,10 @@
             android:textStyle="bold"
             android:textColor="#212121"
             android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
             app:layout_constraintStart_toEndOf="@id/iconBg"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/viewStatus"/>
+            app:layout_constraintEnd_toStartOf="@id/tvPrice"/>
 
         <TextView
             android:id="@+id/tvQty"
